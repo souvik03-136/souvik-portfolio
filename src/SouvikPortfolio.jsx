@@ -114,7 +114,7 @@ const GlobalStyles = () => (
 
       /* Hero needs top padding on mobile for the nav */
       .hero-section {
-        padding-top: 100px !important;
+        padding-top: 120px !important;
         min-height: 100svh !important;
         align-items: flex-start !important;
       }
@@ -128,10 +128,13 @@ const GlobalStyles = () => (
       /* Hero stats hide on mobile */
       .hero-stats { display: none !important; }
 
-      /* Footer grid mobile */
+      /* Footer grid mobile — brand full width, then 2 cols */
       .footer-grid {
         grid-template-columns: 1fr 1fr !important;
         gap: 2rem !important;
+      }
+      .footer-brand {
+        grid-column: 1 / -1 !important;
       }
 
       /* Nav links hide on mobile */
@@ -154,7 +157,7 @@ const GlobalStyles = () => (
 
     @media (max-width: 480px) {
       .footer-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr 1fr !important;
       }
     }
 
@@ -406,6 +409,23 @@ const Nav = ({ visible }) => {
             {link}
           </motion.a>
         ))}
+        <motion.a
+          href="https://drive.google.com/file/d/1TT8yKIxCNr94h_04dBTR-mwi1HHLEt-K/view"
+          target="_blank"
+          rel="noreferrer"
+          whileHover={{ scale: 1.03, borderColor: "var(--accent)", color: "var(--accent)" }}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.7rem",
+            color: "var(--muted)", background: "transparent",
+            border: "1px solid rgba(255,255,255,0.15)",
+            padding: "8px 20px", borderRadius: "2px",
+            letterSpacing: "0.1em", textTransform: "uppercase",
+            textDecoration: "none", transition: "all 0.2s",
+          }}
+        >
+          Resume ↗
+        </motion.a>
         <motion.a
           href="mailto:souvikmahanta2003@gmail.com"
           whileHover={{ scale: 1.03 }}
@@ -850,6 +870,24 @@ const Hero = () => {
               View Work
             </motion.a>
             <motion.a
+              href="https://drive.google.com/file/d/1TT8yKIxCNr94h_04dBTR-mwi1HHLEt-K/view"
+              target="_blank"
+              rel="noreferrer"
+              whileHover={{ scale: 1.02, borderColor: "var(--accent)", color: "var(--accent)" }}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                fontFamily: "var(--font-mono)", fontSize: "0.75rem",
+                color: "var(--muted)", background: "transparent",
+                border: "1px solid rgba(255,255,255,0.15)",
+                padding: "14px 28px", borderRadius: "2px",
+                letterSpacing: "0.1em", textTransform: "uppercase",
+                textDecoration: "none", display: "inline-block",
+                transition: "all 0.2s",
+              }}
+            >
+              Resume ↗
+            </motion.a>
+            <motion.a
               href="https://github.com/souvik03-136"
               target="_blank"
               whileHover={{ color: "var(--accent)" }}
@@ -890,7 +928,7 @@ const Hero = () => {
             display: "flex", flexDirection: "column", gap: "2rem",
           }}
         >
-          {[["3+", "Years Building"], ["5k+", "Users Served"], ["3+", "Internships"]].map(([num, label]) => (
+          {[["3+", "Years Building"], ["5k+", "Users Served"], ["3", "Internships"]].map(([num, label]) => (
             <div key={label} style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "var(--font-display)", fontSize: "2.5rem", fontWeight: 300, color: "var(--accent)", lineHeight: 1 }}>
                 {num}
@@ -1542,7 +1580,7 @@ const Footer = () => (
       }}>
 
         {/* Brand col */}
-        <div>
+        <div className="footer-brand">
           <div style={{
             fontFamily: "var(--font-display)", fontSize: "2rem",
             fontStyle: "italic", color: "var(--accent)", fontWeight: 300,
@@ -1658,12 +1696,6 @@ const Footer = () => (
             >
               souvikmahantabusiness2003@gmail.com
             </motion.a>
-            <div style={{
-              fontFamily: "var(--font-mono)", fontSize: "0.7rem",
-              color: "var(--muted)",
-            }}>
-              +91 8910827117
-            </div>
           </div>
         </div>
       </div>
