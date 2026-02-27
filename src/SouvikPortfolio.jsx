@@ -112,6 +112,13 @@ const GlobalStyles = () => (
       .container { padding: 0 24px; }
       .section { padding: 80px 0; }
 
+      /* Hero needs top padding on mobile for the nav */
+      .hero-section {
+        padding-top: 100px !important;
+        min-height: 100svh !important;
+        align-items: flex-start !important;
+      }
+
       /* About section mobile grid */
       .about-grid {
         grid-template-columns: 1fr !important;
@@ -134,6 +141,14 @@ const GlobalStyles = () => (
       .profile-card {
         max-width: 320px;
         margin: 0 auto;
+      }
+
+      /* Spotify card mobile */
+      .spotify-card {
+        right: 16px !important;
+        bottom: 90px !important;
+        left: 16px !important;
+        width: auto !important;
       }
     }
 
@@ -487,6 +502,228 @@ const ImageTrail = () => {
   );
 };
 
+// ─── SPOTIFY NOW PLAYING ──────────────────────────────────────────────────────
+
+const SONG = {
+  title: "Succession (Main Title Theme)",
+  artist: "Nicholas Britell",
+  src: "/theme.mp3",
+};
+
+const SpotifyWidget = () => {
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const audioRef = useRef(null);
+
+  // Create audio element once
+  useEffect(() => {
+    const audio = new Audio(SONG.src);
+    audio.preload = "metadata";
+    audioRef.current = audio;
+
+    audio.addEventListener("loadedmetadata", () => {
+      setDuration(Math.floor(audio.duration));
+    });
+    audio.addEventListener("timeupdate", () => {
+      setProgress(Math.floor(audio.currentTime));
+    });
+    audio.addEventListener("ended", () => {
+      setPlaying(false);
+      setProgress(0);
+    });
+
+    const t = setTimeout(() => setVisible(true), 2800);
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+      clearTimeout(t);
+    };
+  }, []);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+    } else {
+      audio.play().then(() => setPlaying(true)).catch(() => {});
+    }
+  };
+
+  const scrub = (e) => {
+    const audio = audioRef.current;
+    if (!audio || !duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const newTime = (x / rect.width) * duration;
+    audio.currentTime = newTime;
+    setProgress(Math.floor(newTime));
+  };
+
+  const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const pct = duration > 0 ? (progress / duration) * 100 : 0;
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          className="spotify-card"
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            position: "fixed",
+            bottom: 32, right: 32,
+            width: 280, zIndex: 500,
+            background: "rgba(12,12,12,0.92)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "12px",
+            padding: "16px",
+            backdropFilter: "blur(24px)",
+            boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,110,0.06)",
+          }}
+        >
+          {/* Header */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginBottom: "14px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#1DB954">
+                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+              </svg>
+              <span style={{
+                fontFamily: "var(--font-mono)", fontSize: "0.6rem",
+                color: playing ? "#1DB954" : "var(--muted)",
+                letterSpacing: "0.15em", textTransform: "uppercase",
+                transition: "color 0.3s",
+              }}>
+                {playing ? "Now Playing" : "Paused"}
+              </span>
+            </div>
+
+            {/* Animated equaliser bars */}
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: 14 }}>
+              {[1, 2, 3, 4].map(i => (
+                <motion.div
+                  key={i}
+                  animate={playing ? {
+                    height: ["3px", `${7 + i * 2}px`, "3px"],
+                  } : { height: "3px" }}
+                  transition={{
+                    duration: 0.45 + i * 0.12,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: i * 0.08,
+                  }}
+                  style={{ width: 3, background: "#1DB954", borderRadius: 2 }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Song info row */}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+            {/* Album art disc */}
+            <div style={{
+              width: 44, height: 44, borderRadius: "6px", flexShrink: 0,
+              background: "linear-gradient(135deg, #1a1208, #0a0a0a)",
+              border: "1px solid rgba(200,169,110,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+              boxShadow: playing ? "0 0 16px rgba(29,185,84,0.25)" : "none",
+              transition: "box-shadow 0.4s",
+            }}>
+              <motion.div
+                animate={playing ? { rotate: 360 } : {}}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                style={{
+                  width: "100%", height: "100%",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontFamily: "var(--font-display)", fontSize: "1.3rem",
+                  color: "rgba(200,169,110,0.6)", fontStyle: "italic",
+                }}
+              >
+                ♪
+              </motion.div>
+            </div>
+
+            {/* Title + artist */}
+            <div style={{ overflow: "hidden", flex: 1 }}>
+              <div style={{
+                fontFamily: "var(--font-sans)", fontSize: "0.78rem",
+                fontWeight: 600, color: "var(--text)",
+                whiteSpace: "nowrap", overflow: "hidden",
+                textOverflow: "ellipsis", lineHeight: 1.3,
+              }}>
+                {SONG.title}
+              </div>
+              <div style={{
+                fontFamily: "var(--font-mono)", fontSize: "0.62rem",
+                color: "var(--muted)", marginTop: "3px",
+              }}>
+                {SONG.artist}
+              </div>
+            </div>
+
+            {/* Play / Pause button */}
+            <motion.button
+              whileHover={{ scale: 1.12 }}
+              whileTap={{ scale: 0.88 }}
+              onClick={togglePlay}
+              style={{
+                width: 34, height: 34, borderRadius: "50%",
+                background: playing ? "#1DB954" : "rgba(255,255,255,0.12)",
+                border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, transition: "background 0.25s",
+                color: playing ? "#000" : "#fff",
+                fontSize: playing ? "0.55rem" : "0.75rem",
+                paddingLeft: playing ? 0 : "2px",
+              }}
+            >
+              {playing ? "❚❚" : "▶"}
+            </motion.button>
+          </div>
+
+          {/* Progress bar — clickable scrubber */}
+          <div>
+            <div
+              onClick={scrub}
+              style={{
+                width: "100%", height: 4,
+                background: "rgba(255,255,255,0.08)",
+                borderRadius: 2, cursor: "pointer",
+                marginBottom: "6px", position: "relative",
+              }}
+            >
+              <div style={{
+                height: "100%", borderRadius: 2,
+                background: "linear-gradient(to right, #1DB954, #1ed760)",
+                width: `${pct}%`,
+                transition: "width 0.8s linear",
+              }} />
+            </div>
+            <div style={{
+              display: "flex", justifyContent: "space-between",
+              fontFamily: "var(--font-mono)", fontSize: "0.58rem",
+              color: "rgba(255,255,255,0.22)",
+            }}>
+              <span>{fmt(progress)}</span>
+              <span>{duration > 0 ? fmt(duration) : "--:--"}</span>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 
 const Hero = () => {
@@ -505,7 +742,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section style={{
+    <section className="hero-section" style={{
       minHeight: "100vh", display: "flex", alignItems: "center",
       position: "relative", overflow: "hidden",
     }}>
@@ -1503,6 +1740,7 @@ export default function App() {
         pointerEvents: loaded ? "auto" : "none",
       }}>
         <ImageTrail />
+        <SpotifyWidget />
         <Nav visible={loaded} />
         <main>
           <Hero />
