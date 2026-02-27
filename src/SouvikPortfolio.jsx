@@ -90,15 +90,18 @@ const GlobalStyles = () => (
       cursor: none;
     }
 
+    /* Show native cursor over scrollbar */
+    body:has(::-webkit-scrollbar:hover) { cursor: default; }
+
     @media (max-width: 768px) {
       body { cursor: auto; }
     }
 
     ::selection { background: rgba(200,169,110,0.3); color: var(--text); }
 
-    ::-webkit-scrollbar { width: 2px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); cursor: default; }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; cursor: default; }
 
     .section { padding: 120px 0; }
 
@@ -222,22 +225,47 @@ const GlobalStyles = () => (
 const CustomCursor = () => {
   const cursorRef = useRef(null);
   const followerRef = useRef(null);
-  const pos = useRef({ x: 0, y: 0 });
-  const followerPos = useRef({ x: 0, y: 0 });
+  const pos = useRef({ x: -100, y: -100 });
+  const followerPos = useRef({ x: -100, y: -100 });
+  const visible = useRef(false);
   const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
+    const SCROLLBAR_WIDTH = 16; // hide cursor when over native scrollbar
+
     const onMove = (e) => {
+      // If mouse is over the scrollbar zone — hide custom cursor, let native show
+      const overScrollbar = e.clientX > window.innerWidth - SCROLLBAR_WIDTH;
+      if (cursorRef.current) cursorRef.current.style.opacity = overScrollbar ? "0" : "1";
+      if (followerRef.current) followerRef.current.style.opacity = overScrollbar ? "0" : "1";
+      if (overScrollbar) return;
+
       pos.current = { x: e.clientX, y: e.clientY };
+      if (!visible.current) {
+        followerPos.current = { x: e.clientX, y: e.clientY };
+        visible.current = true;
+      }
       if (cursorRef.current) {
         cursorRef.current.style.transform = `translate(${e.clientX - 6}px, ${e.clientY - 6}px)`;
       }
+    };
+
+    const onLeave = () => {
+      if (cursorRef.current) cursorRef.current.style.opacity = "0";
+      if (followerRef.current) followerRef.current.style.opacity = "0";
+    };
+
+    const onEnter = () => {
+      if (cursorRef.current) cursorRef.current.style.opacity = "1";
+      if (followerRef.current) followerRef.current.style.opacity = "1";
     };
 
     const onHoverIn = () => setHovered(true);
     const onHoverOut = () => setHovered(false);
 
     window.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseleave", onLeave);
+    document.addEventListener("mouseenter", onEnter);
     document.querySelectorAll("a, button, [data-hover]").forEach(el => {
       el.addEventListener("mouseenter", onHoverIn);
       el.addEventListener("mouseleave", onHoverOut);
@@ -245,7 +273,6 @@ const CustomCursor = () => {
 
     let raf;
     const animate = () => {
-      // Lerp the follower toward cursor - works in viewport coords (fixed positioning)
       followerPos.current.x += (pos.current.x - followerPos.current.x) * 0.12;
       followerPos.current.y += (pos.current.y - followerPos.current.y) * 0.12;
       if (followerRef.current) {
@@ -258,6 +285,8 @@ const CustomCursor = () => {
 
     return () => {
       window.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseleave", onLeave);
+      document.removeEventListener("mouseenter", onEnter);
       cancelAnimationFrame(raf);
     };
   }, []);
@@ -268,7 +297,8 @@ const CustomCursor = () => {
         position: "fixed", top: 0, left: 0, width: 12, height: 12,
         borderRadius: "50%", background: "var(--accent)",
         pointerEvents: "none", zIndex: 99999,
-        willChange: "transform",
+        willChange: "transform", opacity: 0,
+        transition: "opacity 0.15s",
       }} />
       <div id="cursor-ring" ref={followerRef} style={{
         position: "fixed", top: 0, left: 0,
@@ -276,8 +306,8 @@ const CustomCursor = () => {
         borderRadius: "50%",
         border: `1px solid rgba(200,169,110,${hovered ? 0.8 : 0.3})`,
         pointerEvents: "none", zIndex: 99998,
-        transition: "width 0.3s, height 0.3s, border-color 0.3s",
-        willChange: "transform",
+        transition: "width 0.3s, height 0.3s, border-color 0.3s, opacity 0.15s",
+        willChange: "transform", opacity: 0,
       }} />
     </>
   );
@@ -410,7 +440,7 @@ const Nav = ({ visible }) => {
           transition: "background 0.4s",
         }}
       >
-        {/* SM logo - clicks to top */}
+        {/* SM logo — clicks to top */}
         <motion.a
           href="/"
           onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); closeMenu(); }}
@@ -458,7 +488,7 @@ const Nav = ({ visible }) => {
           </motion.a>
         </div>
 
-        {/* Hamburger - mobile only */}
+        {/* Hamburger — mobile only */}
         <motion.button
           className="hamburger"
           onClick={() => setMenuOpen(o => !o)}
@@ -811,7 +841,7 @@ const SpotifyWidget = () => {
             </motion.button>
           </div>
 
-          {/* Progress bar - clickable scrubber */}
+          {/* Progress bar — clickable scrubber */}
           <div>
             <div
               onClick={scrub}
@@ -1922,7 +1952,7 @@ const Footer = () => (
             Navigation
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {["About", "Skills", "Services", "Projects", "Contact"].map(link => (
+            {["About", "Experience", "Skills", "Services", "Projects", "Contact"].map(link => (
               <motion.a
                 key={link}
                 href={`#${link.toLowerCase()}`}
@@ -2047,7 +2077,7 @@ export default function App() {
     setLoaded(true);
   }, []);
 
-  // Set page title and favicon - using data URI (no blob, no revocation bug)
+  // Set page title and favicon — using data URI (no blob, no revocation bug)
   useEffect(() => {
     document.title = "Souvik Mahanta - Backend Engineer & AI Specialist";
 
