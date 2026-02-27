@@ -7,7 +7,7 @@ import profileImg from "./assets/profile/profile.png";
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
-const NAV_LINKS = ["About", "Skills", "Services", "Projects", "Contact"];
+const NAV_LINKS = ["About", "Experience", "Skills", "Services", "Projects", "Contact"];
 
 const SERVICES = [
   { icon: "◈", title: "AI & ML Systems", desc: "Multi-agent architectures, LLM pipelines, RAG systems, and intelligent automation built for production scale.", tag: "Intelligence" },
@@ -137,8 +137,15 @@ const GlobalStyles = () => (
         grid-column: 1 / -1 !important;
       }
 
-      /* Nav links hide on mobile */
+      /* Experience row mobile */
+      .exp-row {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+      }
+
+      /* Nav links hide on mobile, hamburger shows */
       .nav-links { display: none !important; }
+      .hamburger { display: flex !important; }
 
       /* Profile image mobile */
       .profile-card {
@@ -238,14 +245,16 @@ const CustomCursor = () => {
 
     let raf;
     const animate = () => {
-      followerPos.current.x += (pos.current.x - followerPos.current.x) * 0.08;
-      followerPos.current.y += (pos.current.y - followerPos.current.y) * 0.08;
+      // Lerp the follower toward cursor - works in viewport coords (fixed positioning)
+      followerPos.current.x += (pos.current.x - followerPos.current.x) * 0.12;
+      followerPos.current.y += (pos.current.y - followerPos.current.y) * 0.12;
       if (followerRef.current) {
-        followerRef.current.style.transform = `translate(${followerPos.current.x - 20}px, ${followerPos.current.y - 20}px)`;
+        const size = followerRef.current.offsetWidth;
+        followerRef.current.style.transform = `translate(${followerPos.current.x - size / 2}px, ${followerPos.current.y - size / 2}px)`;
       }
       raf = requestAnimationFrame(animate);
     };
-    animate();
+    raf = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener("mousemove", onMove);
@@ -259,7 +268,7 @@ const CustomCursor = () => {
         position: "fixed", top: 0, left: 0, width: 12, height: 12,
         borderRadius: "50%", background: "var(--accent)",
         pointerEvents: "none", zIndex: 99999,
-        transition: "width 0.2s, height 0.2s, background 0.2s",
+        willChange: "transform",
       }} />
       <div id="cursor-ring" ref={followerRef} style={{
         position: "fixed", top: 0, left: 0,
@@ -268,6 +277,7 @@ const CustomCursor = () => {
         border: `1px solid rgba(200,169,110,${hovered ? 0.8 : 0.3})`,
         pointerEvents: "none", zIndex: 99998,
         transition: "width 0.3s, height 0.3s, border-color 0.3s",
+        willChange: "transform",
       }} />
     </>
   );
@@ -368,6 +378,7 @@ const Preloader = ({ onComplete }) => {
 
 const Nav = ({ visible }) => {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -375,58 +386,166 @@ const Nav = ({ visible }) => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Lock body scroll when menu open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <motion.nav
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: visible ? 0 : -80, opacity: visible ? 1 : 0 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
-        padding: "24px 40px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        background: scrolled ? "rgba(8,8,8,0.85)" : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
-        borderBottom: scrolled ? "1px solid var(--border)" : "none",
-        transition: "background 0.4s, border-color 0.4s",
-      }}
-    >
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "1.4rem", fontStyle: "italic", color: "var(--accent)", fontWeight: 300 }}>
-        SM
-      </div>
-      <div style={{ display: "flex", gap: "2.5rem", alignItems: "center" }}>
-        {NAV_LINKS.map(link => (
-          <motion.a
-            key={link}
-            href={`#${link.toLowerCase()}`}
-            whileHover={{ color: "var(--accent)" }}
-            style={{
-              fontFamily: "var(--font-mono)", fontSize: "0.72rem",
-              color: "var(--muted)", letterSpacing: "0.12em",
-              textDecoration: "none", textTransform: "uppercase",
-              transition: "color 0.2s",
-            }}
-          >
-            {link}
-          </motion.a>
-        ))}
+    <>
+      <motion.nav
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: visible ? 0 : -80, opacity: visible ? 1 : 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
+          padding: "20px 40px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: scrolled ? "rgba(8,8,8,0.9)" : "rgba(8,8,8,0.6)",
+          backdropFilter: "blur(20px)",
+          borderBottom: "1px solid var(--border)",
+          transition: "background 0.4s",
+        }}
+      >
+        {/* SM logo - clicks to top */}
         <motion.a
-          href="https://drive.google.com/file/d/1TT8yKIxCNr94h_04dBTR-mwi1HHLEt-K/view"
-          target="_blank"
-          rel="noreferrer"
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
+          href="/"
+          onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); closeMenu(); }}
+          whileHover={{ color: "var(--text)" }}
           style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.7rem",
-            color: "var(--bg)", background: "var(--accent)",
-            padding: "8px 20px", borderRadius: "2px",
-            letterSpacing: "0.1em", textTransform: "uppercase",
-            textDecoration: "none",
+            fontFamily: "var(--font-display)", fontSize: "1.4rem",
+            fontStyle: "italic", color: "var(--accent)", fontWeight: 300,
+            textDecoration: "none", cursor: "pointer",
           }}
         >
-          Resume ↗
+          SM
         </motion.a>
-      </div>
-    </motion.nav>
+
+        {/* Desktop links */}
+        <div style={{ display: "flex", gap: "2.5rem", alignItems: "center" }} className="nav-links">
+          {NAV_LINKS.map(link => (
+            <motion.a
+              key={link}
+              href={`#${link.toLowerCase()}`}
+              whileHover={{ color: "var(--accent)" }}
+              style={{
+                fontFamily: "var(--font-mono)", fontSize: "0.72rem",
+                color: "var(--muted)", letterSpacing: "0.12em",
+                textDecoration: "none", textTransform: "uppercase",
+                transition: "color 0.2s",
+              }}
+            >
+              {link}
+            </motion.a>
+          ))}
+          <motion.a
+            href="https://drive.google.com/file/d/1TT8yKIxCNr94h_04dBTR-mwi1HHLEt-K/view"
+            target="_blank" rel="noreferrer"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              fontFamily: "var(--font-mono)", fontSize: "0.7rem",
+              color: "var(--bg)", background: "var(--accent)",
+              padding: "8px 20px", borderRadius: "2px",
+              letterSpacing: "0.1em", textTransform: "uppercase",
+              textDecoration: "none",
+            }}
+          >
+            Resume ↗
+          </motion.a>
+        </div>
+
+        {/* Hamburger - mobile only */}
+        <motion.button
+          className="hamburger"
+          onClick={() => setMenuOpen(o => !o)}
+          whileTap={{ scale: 0.9 }}
+          style={{
+            display: "none",
+            background: "none", border: "none",
+            cursor: "pointer", padding: "4px",
+            flexDirection: "column", gap: "5px",
+            zIndex: 1100,
+          }}
+        >
+          {[0, 1, 2].map(i => (
+            <motion.span
+              key={i}
+              animate={menuOpen ? {
+                rotate: i === 0 ? 45 : i === 2 ? -45 : 0,
+                y: i === 0 ? 10 : i === 2 ? -10 : 0,
+                opacity: i === 1 ? 0 : 1,
+              } : { rotate: 0, y: 0, opacity: 1 }}
+              transition={{ duration: 0.25 }}
+              style={{
+                display: "block", width: 22, height: 1.5,
+                background: "var(--accent)", borderRadius: 2,
+              }}
+            />
+          ))}
+        </motion.button>
+      </motion.nav>
+
+      {/* Mobile fullscreen menu */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: "fixed", inset: 0, zIndex: 999,
+              background: "rgba(8,8,8,0.97)",
+              backdropFilter: "blur(24px)",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: "2.5rem",
+            }}
+          >
+            {NAV_LINKS.map((link, i) => (
+              <motion.a
+                key={link}
+                href={`#${link.toLowerCase()}`}
+                onClick={closeMenu}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.07, duration: 0.4 }}
+                whileHover={{ color: "var(--accent)", x: 6 }}
+                style={{
+                  fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 8vw, 3rem)",
+                  fontWeight: 300, color: "var(--text)",
+                  textDecoration: "none", letterSpacing: "-0.01em",
+                  transition: "color 0.2s",
+                }}
+              >
+                {link}
+              </motion.a>
+            ))}
+            <motion.a
+              href="https://drive.google.com/file/d/1TT8yKIxCNr94h_04dBTR-mwi1HHLEt-K/view"
+              target="_blank" rel="noreferrer"
+              onClick={closeMenu}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: NAV_LINKS.length * 0.07 + 0.05 }}
+              style={{
+                fontFamily: "var(--font-mono)", fontSize: "0.8rem",
+                color: "var(--bg)", background: "var(--accent)",
+                padding: "14px 40px", borderRadius: "2px",
+                letterSpacing: "0.15em", textTransform: "uppercase",
+                textDecoration: "none", marginTop: "1rem",
+              }}
+            >
+              Resume ↗
+            </motion.a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
@@ -692,7 +811,7 @@ const SpotifyWidget = () => {
             </motion.button>
           </div>
 
-          {/* Progress bar — clickable scrubber */}
+          {/* Progress bar - clickable scrubber */}
           <div>
             <div
               onClick={scrub}
@@ -830,7 +949,7 @@ const Hero = () => {
               marginBottom: "3rem",
             }}
           >
-            Backend engineer & AI systems specialist. I build scalable backend infrastructure, autonomous AI agents, and high-performance distributed systems — from multi-agent LLM pipelines to production Go backends.
+            Backend engineer & AI systems specialist. I build scalable backend infrastructure, autonomous AI agents, and high-performance distributed systems - from multi-agent LLM pipelines to production Go backends.
           </motion.p>
 
           {/* CTAs */}
@@ -1060,7 +1179,7 @@ const About = () => {
                 fontFamily: "var(--font-sans)", fontSize: "0.95rem",
                 color: "var(--muted)", lineHeight: 1.8, marginBottom: "3rem",
               }}>
-                From AI multi-agent systems at Indium Software to high-scale backend infrastructure serving 5,000+ users — I bring structure to chaos and clarity to complexity. Fluent in English, Bengali, Hindi, and elementary German.
+                From AI multi-agent systems at Indium Software to high-scale backend infrastructure serving 5,000+ users - I bring structure to chaos and clarity to complexity. Fluent in English, Bengali, Hindi, and elementary German.
               </p>
 
               <div style={{ display: "flex", gap: "2rem" }}>
@@ -1146,6 +1265,211 @@ const Skills = () => {
     </section>
   );
 };
+
+// ─── EXPERIENCE ───────────────────────────────────────────────────────────────
+
+const EXPERIENCE = [
+  {
+    role: "Software Engineer",
+    company: "Stealth AI Health Tech Startup",
+    period: "Feb 2026 — Present",
+    type: "Full-time",
+    points: [
+      "Integrated WhatsApp Cloud API to power a conversational AI assistant with real-time webhook handling.",
+      "Built a multi-stage onboarding system with stateful conversation flows and user data validation.",
+      "Designed a modular backend connecting the messaging layer to AI services for contextual, dynamic responses.",
+    ],
+    tags: ["WhatsApp API", "AI", "Node.js", "Webhooks"],
+  },
+  {
+    role: "Data & AI Intern",
+    company: "Indium Software",
+    period: "May 2025 — Jul 2025",
+    type: "Internship · Remote",
+    points: [
+      "Built LangGraph-based multi-agent systems on Databricks Mosaic AI - reduced manual code review time by 40%.",
+      "Deployed multi-LLM routing logic cutting API latency by 45% and reducing costs significantly.",
+      "Automated test generation with LLM agents, improving code coverage by 30%.",
+    ],
+    tags: ["Python", "LangGraph", "Databricks", "MLflow", "LLMs"],
+  },
+  {
+    role: "Software Development Engineer Intern",
+    company: "Agni Green Power Limited",
+    period: "May 2024 — Jul 2024",
+    type: "Internship · Kolkata",
+    points: [
+      "Engineered a client service workflow module that improved operational efficiency by 25%.",
+      "Built a centralized MySQL admin dashboard reducing data retrieval time by 30%.",
+      "Automated performance reporting, enabling faster data-driven decisions across teams.",
+    ],
+    tags: ["PHP", "MySQL", "JavaScript", "jQuery"],
+  },
+  {
+    role: "Senior Core Member & Security Analyst",
+    company: "Google Developer Student Clubs — VIT",
+    period: "May 2023 — Nov 2025",
+    type: "Leadership",
+    points: [
+      "Ran cybersecurity workshops for 3,000+ attendees; mentored 200+ students on secure coding.",
+      "Managed a 36-hour international CTF competition with 5,000+ participants, growing global reach by 15%.",
+    ],
+    tags: ["Cybersecurity", "CTF", "Mentorship", "Community"],
+  },
+];
+
+const ExperienceCard = ({ exp, index }) => {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1, duration: 0.7 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <motion.div
+        whileHover={{ y: -6 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        style={{
+          background: "var(--surface2)",
+          border: `1px solid ${hovered ? "rgba(200,169,110,0.3)" : "var(--border)"}`,
+          borderRadius: "4px", padding: "2.5rem",
+          position: "relative", overflow: "hidden",
+          transition: "border-color 0.4s",
+          height: "100%", display: "flex", flexDirection: "column",
+        }}
+      >
+        {/* Index watermark */}
+        <div style={{
+          position: "absolute", top: "1.5rem", right: "2rem",
+          fontFamily: "var(--font-display)", fontSize: "3rem",
+          color: "rgba(200,169,110,0.07)", fontWeight: 300, lineHeight: 1,
+          userSelect: "none",
+        }}>
+          {String(index + 1).padStart(2, "0")}
+        </div>
+
+        {/* Period + type */}
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+          <div style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.63rem",
+            color: "var(--muted)", letterSpacing: "0.05em",
+          }}>
+            {exp.period}
+          </div>
+          <div style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.6rem",
+            color: "var(--accent)", letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            background: "rgba(200,169,110,0.08)",
+            border: "1px solid rgba(200,169,110,0.15)",
+            padding: "3px 8px", borderRadius: "2px",
+          }}>
+            {exp.type}
+          </div>
+        </div>
+
+        {/* Role */}
+        <div style={{
+          fontFamily: "var(--font-sans)", fontSize: "1.1rem",
+          fontWeight: 700, color: "var(--text)",
+          marginBottom: "0.25rem", letterSpacing: "-0.01em",
+        }}>
+          {exp.role}
+        </div>
+
+        {/* Company */}
+        <div style={{
+          fontFamily: "var(--font-display)", fontSize: "1rem",
+          fontStyle: "italic", color: "var(--accent)",
+          marginBottom: "1.5rem",
+        }}>
+          {exp.company}
+        </div>
+
+        {/* Points */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginBottom: "1.75rem", flex: 1 }}>
+          {exp.points.map((pt, j) => (
+            <div key={j} style={{ display: "flex", gap: "0.65rem", alignItems: "flex-start" }}>
+              <span style={{ color: "var(--accent)", fontSize: "0.65rem", marginTop: "0.3rem", flexShrink: 0 }}>→</span>
+              <span style={{
+                fontFamily: "var(--font-sans)", fontSize: "0.84rem",
+                color: "var(--muted)", lineHeight: 1.65,
+              }}>
+                {pt}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Tags */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+          {exp.tags.map(tag => (
+            <span key={tag} style={{
+              fontFamily: "var(--font-mono)", fontSize: "0.62rem",
+              color: "var(--muted)", background: "rgba(255,255,255,0.04)",
+              border: "1px solid var(--border)",
+              padding: "4px 10px", borderRadius: "2px",
+            }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Hover glow */}
+        <motion.div
+          animate={{ opacity: hovered ? 1 : 0 }}
+          style={{
+            position: "absolute", inset: 0,
+            background: "radial-gradient(ellipse at 50% 0%, rgba(200,169,110,0.06) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const Experience = () => (
+  <section id="experience" className="section">
+    <div className="container">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        style={{ marginBottom: "4rem" }}
+      >
+        <div style={{
+          fontFamily: "var(--font-mono)", fontSize: "0.7rem",
+          color: "var(--accent)", letterSpacing: "0.3em",
+          textTransform: "uppercase", marginBottom: "1rem",
+        }}>
+          Where I've Worked
+        </div>
+        <h2 style={{
+          fontFamily: "var(--font-display)", fontSize: "clamp(2.5rem, 5vw, 4rem)",
+          fontWeight: 300, letterSpacing: "-0.02em", color: "var(--text)",
+        }}>
+          Experience &amp; <em style={{ fontStyle: "italic", color: "var(--accent)" }}>Impact</em>
+        </h2>
+      </motion.div>
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+        gap: "1.5rem",
+      }}>
+        {EXPERIENCE.map((exp, i) => (
+          <ExperienceCard key={exp.company} exp={exp} index={i} />
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 // ─── SERVICES ─────────────────────────────────────────────────────────────────
 
@@ -1723,9 +2047,9 @@ export default function App() {
     setLoaded(true);
   }, []);
 
-  // Set page title and favicon — using data URI (no blob, no revocation bug)
+  // Set page title and favicon - using data URI (no blob, no revocation bug)
   useEffect(() => {
-    document.title = "Souvik Mahanta — Backend Engineer & AI Specialist";
+    document.title = "Souvik Mahanta - Backend Engineer & AI Specialist";
 
     const svgRaw = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="%23080808"/><text x="50%25" y="54%25" dominant-baseline="middle" text-anchor="middle" font-family="Georgia%2C serif" font-size="26" font-style="italic" font-weight="400" fill="%23c8a96e">SM</text></svg>`;
     const dataURI = `data:image/svg+xml,${svgRaw}`;
@@ -1759,6 +2083,7 @@ export default function App() {
           <Hero />
           <About />
           <Skills />
+          <Experience />
           <Services />
           <Marquee />
           <Projects />
