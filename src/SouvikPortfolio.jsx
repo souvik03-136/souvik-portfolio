@@ -890,7 +890,7 @@ const Hero = () => {
             display: "flex", flexDirection: "column", gap: "2rem",
           }}
         >
-          {[["3+", "Years Building"], ["5k+", "Users Served"], ["3", "Internships"]].map(([num, label]) => (
+          {[["3+", "Years Building"], ["5k+", "Users Served"], ["3+", "Internships"]].map(([num, label]) => (
             <div key={label} style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "var(--font-display)", fontSize: "2.5rem", fontWeight: 300, color: "var(--accent)", lineHeight: 1 }}>
                 {num}
@@ -1680,7 +1680,7 @@ const Footer = () => (
           fontFamily: "var(--font-mono)", fontSize: "0.65rem",
           color: "var(--muted)", letterSpacing: "0.08em",
         }}>
-          © 2025 Souvik Mahanta. All rights reserved.
+          © 2026 Souvik Mahanta. All rights reserved.
         </div>
         <div style={{
           fontFamily: "var(--font-display)", fontSize: "0.9rem",
