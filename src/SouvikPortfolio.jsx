@@ -87,6 +87,10 @@ const GlobalStyles = () => (
       cursor: none;
     }
 
+    @media (max-width: 768px) {
+      body { cursor: auto; }
+    }
+
     ::selection { background: rgba(200,169,110,0.3); color: var(--text); }
 
     ::-webkit-scrollbar { width: 2px; }
@@ -104,6 +108,36 @@ const GlobalStyles = () => (
     @media (max-width: 768px) {
       .container { padding: 0 24px; }
       .section { padding: 80px 0; }
+
+      /* About section mobile grid */
+      .about-grid {
+        grid-template-columns: 1fr !important;
+        gap: 3rem !important;
+      }
+
+      /* Hero stats hide on mobile */
+      .hero-stats { display: none !important; }
+
+      /* Footer grid mobile */
+      .footer-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 2rem !important;
+      }
+
+      /* Nav links hide on mobile */
+      .nav-links { display: none !important; }
+
+      /* Profile image mobile */
+      .profile-card {
+        max-width: 320px;
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .footer-grid {
+        grid-template-columns: 1fr !important;
+      }
     }
 
     /* Preloader */
@@ -143,6 +177,11 @@ const GlobalStyles = () => (
       70% { transform: translate(-4%, 3%); }
       80% { transform: translate(1%, -2%); }
       90% { transform: translate(-2%, 4%); }
+    }
+
+    /* Hide custom cursor on mobile */
+    @media (max-width: 768px) {
+      #cursor-dot, #cursor-ring { display: none !important; }
     }
 
     /* Line clamp */
@@ -195,13 +234,13 @@ const CustomCursor = () => {
 
   return (
     <>
-      <div ref={cursorRef} style={{
+      <div id="cursor-dot" ref={cursorRef} style={{
         position: "fixed", top: 0, left: 0, width: 12, height: 12,
         borderRadius: "50%", background: "var(--accent)",
         pointerEvents: "none", zIndex: 99999,
         transition: "width 0.2s, height 0.2s, background 0.2s",
       }} />
-      <div ref={followerRef} style={{
+      <div id="cursor-ring" ref={followerRef} style={{
         position: "fixed", top: 0, left: 0,
         width: hovered ? 60 : 40, height: hovered ? 60 : 40,
         borderRadius: "50%",
@@ -500,7 +539,7 @@ const Hero = () => {
             }}
           >
             <span style={{ display: "block", width: 40, height: 1, background: "var(--accent)" }} />
-            Available for Consulting
+            Open to Opportunities
           </motion.div>
 
           {/* Main headline */}
@@ -550,7 +589,7 @@ const Hero = () => {
               marginBottom: "3rem",
             }}
           >
-            Backend engineer & AI systems specialist. I design infrastructure that performs at scale — from multi-agent LLM pipelines to distributed Go backends. Currently at VIT, Vellore.
+            Backend engineer & AI systems specialist. I build scalable backend infrastructure, autonomous AI agents, and high-performance distributed systems — from multi-agent LLM pipelines to production Go backends.
           </motion.p>
 
           {/* CTAs */}
@@ -606,6 +645,7 @@ const Hero = () => {
 
         {/* Stats */}
         <motion.div
+          className="hero-stats"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.3, duration: 0.8 }}
@@ -614,7 +654,7 @@ const Hero = () => {
             display: "flex", flexDirection: "column", gap: "2rem",
           }}
         >
-          {[["3+", "Years Building"], ["10k+", "CTF Participants"], ["99.9%", "Uptime Systems"]].map(([num, label]) => (
+          {[["3+", "Years Building"], ["99.9%", "Uptime Achieved"], ["5k+", "Users Served"]].map(([num, label]) => (
             <div key={label} style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "var(--font-display)", fontSize: "2.5rem", fontWeight: 300, color: "var(--accent)", lineHeight: 1 }}>
                 {num}
@@ -658,9 +698,9 @@ const About = () => {
   return (
     <section id="about" className="section" ref={ref} style={{ position: "relative", overflow: "hidden" }}>
       <div className="container">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6rem", alignItems: "center" }}>
+        <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6rem", alignItems: "center" }}>
           {/* Left: Profile visual */}
-          <motion.div style={{ position: "relative" }}>
+          <motion.div className="profile-card" style={{ position: "relative" }}>
             {/* Profile image placeholder with 3D tilt */}
             <motion.div
               whileHover={{ rotateY: -5, rotateX: 3, scale: 1.02 }}
@@ -1212,20 +1252,164 @@ const Contact = () => (
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 
 const Footer = () => (
-  <footer style={{
-    borderTop: "1px solid var(--border)",
-    padding: "2.5rem 0",
-    background: "var(--bg)",
-  }}>
-    <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", fontStyle: "italic", color: "var(--accent)", fontWeight: 300 }}>
-        Souvik Mahanta
+  <footer style={{ background: "var(--surface)", borderTop: "1px solid var(--border)" }}>
+
+    {/* Main footer grid */}
+    <div className="container" style={{ padding: "5rem 40px 3rem" }}>
+      <div className="footer-grid" style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 1fr 1fr 1fr",
+        gap: "3rem",
+      }}>
+
+        {/* Brand col */}
+        <div>
+          <div style={{
+            fontFamily: "var(--font-display)", fontSize: "2rem",
+            fontStyle: "italic", color: "var(--accent)", fontWeight: 300,
+            marginBottom: "1rem",
+          }}>
+            Souvik Mahanta
+          </div>
+          <p style={{
+            fontFamily: "var(--font-sans)", fontSize: "0.85rem",
+            color: "var(--muted)", lineHeight: 1.7, maxWidth: 280,
+            marginBottom: "1.5rem",
+          }}>
+            Backend engineer & AI systems specialist. Building scalable infrastructure, autonomous agents, and distributed systems that work at scale.
+          </p>
+          <div style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+            color: "var(--muted)", letterSpacing: "0.1em",
+          }}>
+            Kolkata, India 🇮🇳
+          </div>
+        </div>
+
+        {/* Links col */}
+        <div>
+          <div style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+            color: "var(--accent)", letterSpacing: "0.2em",
+            textTransform: "uppercase", marginBottom: "1.5rem",
+          }}>
+            Navigation
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {["About", "Skills", "Services", "Projects", "Contact"].map(link => (
+              <motion.a
+                key={link}
+                href={`#${link.toLowerCase()}`}
+                whileHover={{ color: "var(--accent)", x: 4 }}
+                style={{
+                  fontFamily: "var(--font-sans)", fontSize: "0.85rem",
+                  color: "var(--muted)", textDecoration: "none",
+                  transition: "color 0.2s",
+                }}
+              >
+                {link}
+              </motion.a>
+            ))}
+          </div>
+        </div>
+
+        {/* Connect col */}
+        <div>
+          <div style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+            color: "var(--accent)", letterSpacing: "0.2em",
+            textTransform: "uppercase", marginBottom: "1.5rem",
+          }}>
+            Connect
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {[
+              ["GitHub", "https://github.com/souvik03-136"],
+              ["LinkedIn", "https://linkedin.com/in/souvik-mahanta"],
+              ["LeetCode", "https://leetcode.com/u/TESTKING/"],
+            ].map(([label, url]) => (
+              <motion.a
+                key={label}
+                href={url} target="_blank" rel="noreferrer"
+                whileHover={{ color: "var(--accent)", x: 4 }}
+                style={{
+                  fontFamily: "var(--font-sans)", fontSize: "0.85rem",
+                  color: "var(--muted)", textDecoration: "none",
+                  display: "flex", alignItems: "center", gap: "0.4rem",
+                  transition: "color 0.2s",
+                }}
+              >
+                {label} <span style={{ fontSize: "0.7rem" }}>↗</span>
+              </motion.a>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact col */}
+        <div>
+          <div style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+            color: "var(--accent)", letterSpacing: "0.2em",
+            textTransform: "uppercase", marginBottom: "1.5rem",
+          }}>
+            Contact
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <motion.a
+              href="mailto:souvikmahanta2003@gmail.com"
+              whileHover={{ color: "var(--accent)" }}
+              style={{
+                fontFamily: "var(--font-mono)", fontSize: "0.72rem",
+                color: "var(--muted)", textDecoration: "none",
+                wordBreak: "break-all", lineHeight: 1.5,
+                transition: "color 0.2s",
+              }}
+            >
+              souvikmahanta2003@gmail.com
+            </motion.a>
+            <motion.a
+              href="mailto:souvikmahantabusiness2003@gmail.com"
+              whileHover={{ color: "var(--accent)" }}
+              style={{
+                fontFamily: "var(--font-mono)", fontSize: "0.72rem",
+                color: "var(--muted)", textDecoration: "none",
+                wordBreak: "break-all", lineHeight: 1.5,
+                transition: "color 0.2s",
+              }}
+            >
+              souvikmahantabusiness2003@gmail.com
+            </motion.a>
+            <div style={{
+              fontFamily: "var(--font-mono)", fontSize: "0.7rem",
+              color: "var(--muted)",
+            }}>
+              +91 8910827117
+            </div>
+          </div>
+        </div>
       </div>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)", letterSpacing: "0.1em" }}>
-        © 2025 — Backend Engineer & AI Specialist
-      </div>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)", letterSpacing: "0.1em" }}>
-        Vellore, India
+    </div>
+
+    {/* Bottom bar */}
+    <div style={{ borderTop: "1px solid var(--border)" }}>
+      <div className="container" style={{
+        padding: "1.5rem 40px",
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        flexWrap: "wrap", gap: "1rem",
+      }}>
+        <div style={{
+          fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+          color: "var(--muted)", letterSpacing: "0.08em",
+        }}>
+          © 2025 Souvik Mahanta. All rights reserved.
+        </div>
+        <div style={{
+          fontFamily: "var(--font-display)", fontSize: "0.9rem",
+          fontStyle: "italic", color: "var(--muted)",
+          display: "flex", alignItems: "center", gap: "0.4rem",
+        }}>
+          Made with <span style={{ color: "#e05c5c", fontSize: "1rem" }}>♥</span> by Souvik Mahanta
+        </div>
       </div>
     </div>
   </footer>
@@ -1235,36 +1419,60 @@ const Footer = () => (
 
 export default function App() {
   const [loaded, setLoaded] = useState(false);
+  const completedRef = useRef(false);
+
+  const handleComplete = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    setLoaded(true);
+  }, []);
+
+  // Set page title and favicon
+  useEffect(() => {
+    document.title = "Souvik Mahanta — Backend Engineer & AI Specialist";
+
+    // Inject SM favicon as inline SVG
+    const svgFavicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="8" fill="#080808"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Georgia, serif" font-size="28" font-style="italic"
+        font-weight="400" fill="#c8a96e">SM</text>
+    </svg>`;
+    const blob = new Blob([svgFavicon], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const link = document.querySelector("link[rel~='icon']") || document.createElement("link");
+    link.type = "image/svg+xml";
+    link.rel = "icon";
+    link.href = url;
+    document.head.appendChild(link);
+    return () => URL.revokeObjectURL(url);
+  }, []);
 
   return (
     <>
       <GlobalStyles />
       <div className="grain" />
       <CustomCursor />
-      <Preloader onComplete={() => setLoaded(true)} />
+      <Preloader onComplete={handleComplete} />
 
-      <AnimatePresence>
-        {loaded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-          >
-            <ImageTrail />
-            <Nav visible={loaded} />
-            <main>
-              <Hero />
-              <About />
-              <Skills />
-              <Services />
-              <Marquee />
-              <Projects />
-              <Contact />
-            </main>
-            <Footer />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div style={{
+        opacity: loaded ? 1 : 0,
+        transition: "opacity 0.8s ease",
+        pointerEvents: loaded ? "auto" : "none",
+      }}>
+        <ImageTrail />
+        <Nav visible={loaded} />
+        <main>
+          <Hero />
+          <About />
+          <Skills />
+          <Services />
+          <Marquee />
+          <Projects />
+          <Contact />
+        </main>
+        <Footer />
+      </div>
     </>
   );
 }
