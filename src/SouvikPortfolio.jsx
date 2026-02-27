@@ -413,21 +413,6 @@ const Nav = ({ visible }) => {
           href="https://drive.google.com/file/d/1TT8yKIxCNr94h_04dBTR-mwi1HHLEt-K/view"
           target="_blank"
           rel="noreferrer"
-          whileHover={{ scale: 1.03, borderColor: "var(--accent)", color: "var(--accent)" }}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.7rem",
-            color: "var(--muted)", background: "transparent",
-            border: "1px solid rgba(255,255,255,0.15)",
-            padding: "8px 20px", borderRadius: "2px",
-            letterSpacing: "0.1em", textTransform: "uppercase",
-            textDecoration: "none", transition: "all 0.2s",
-          }}
-        >
-          Resume ↗
-        </motion.a>
-        <motion.a
-          href="mailto:souvikmahanta2003@gmail.com"
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           style={{
@@ -438,7 +423,7 @@ const Nav = ({ visible }) => {
             textDecoration: "none",
           }}
         >
-          Hire Me
+          Resume ↗
         </motion.a>
       </div>
     </motion.nav>
@@ -795,7 +780,7 @@ const Hero = () => {
             }}
           >
             <span style={{ display: "block", width: 40, height: 1, background: "var(--accent)" }} />
-            Open to Opportunities
+            Explorer of Ideas. Builder by Nature.
           </motion.div>
 
           {/* Main headline */}
