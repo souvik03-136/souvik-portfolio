@@ -505,8 +505,8 @@ const ImageTrail = () => {
 // ─── SPOTIFY NOW PLAYING ──────────────────────────────────────────────────────
 
 const SONG = {
-  title: "Succession (Main Title Theme)",
-  artist: "Nicholas Britell",
+  title: "This Is Who I Am",
+  artist: "Celeste",
   src: "/theme.mp3",
 };
 
@@ -629,28 +629,24 @@ const SpotifyWidget = () => {
 
           {/* Song info row */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
-            {/* Album art disc */}
+            {/* Album art */}
             <div style={{
               width: 44, height: 44, borderRadius: "6px", flexShrink: 0,
-              background: "linear-gradient(135deg, #1a1208, #0a0a0a)",
-              border: "1px solid rgba(200,169,110,0.15)",
-              display: "flex", alignItems: "center", justifyContent: "center",
               overflow: "hidden",
               boxShadow: playing ? "0 0 16px rgba(29,185,84,0.25)" : "none",
               transition: "box-shadow 0.4s",
+              border: "1px solid rgba(255,255,255,0.08)",
             }}>
-              <motion.div
-                animate={playing ? { rotate: 360 } : {}}
-                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              <motion.img
+                src="/theme.jpeg"
+                alt="Album art"
+                animate={playing ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 style={{
                   width: "100%", height: "100%",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: "var(--font-display)", fontSize: "1.3rem",
-                  color: "rgba(200,169,110,0.6)", fontStyle: "italic",
+                  objectFit: "cover", display: "block",
                 }}
-              >
-                ♪
-              </motion.div>
+              />
             </div>
 
             {/* Title + artist */}
