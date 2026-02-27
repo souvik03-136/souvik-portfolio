@@ -22,10 +22,11 @@ const PROJECTS = [
   {
     name: "NeuraBalancer",
     subtitle: "AI-Driven Load Balancer",
-    desc: "Engineered an intelligent load balancer using Go and a 6-feature neural network (ONNX) achieving 99.9% uptime and 35% lower response latency vs round-robin baseline.",
+    desc: "Engineered an intelligent load balancer using Go and a 6-feature neural network (ONNX) achieving 35% lower response latency vs round-robin baseline with sub-100ms ML inference.",
     tags: ["Go", "PyTorch/ONNX", "TimescaleDB", "Prometheus", "Docker"],
     metric: "35% latency reduction",
     year: "2025",
+    link: "https://github.com/souvik03-136/NeuraBalancer",
   },
   {
     name: "Book-Keeping AI",
@@ -34,6 +35,7 @@ const PROJECTS = [
     tags: ["Python", "TensorFlow", "Flask", "spaCy", "Docker"],
     metric: "92%+ F1 NLP accuracy",
     year: "2024",
+    link: "https://github.com/souvik03-136/book-keeping-ai",
   },
   {
     name: "Riviera'24",
@@ -42,6 +44,7 @@ const PROJECTS = [
     tags: ["Go", "PostgreSQL", "RabbitMQ", "JWT", "Docker"],
     metric: "5,000+ concurrent users",
     year: "2024",
+    link: "https://riviera2024-frontend.vercel.app/",
   },
 ];
 
@@ -654,7 +657,7 @@ const Hero = () => {
             display: "flex", flexDirection: "column", gap: "2rem",
           }}
         >
-          {[["3+", "Years Building"], ["99.9%", "Uptime Achieved"], ["5k+", "Users Served"]].map(([num, label]) => (
+          {[["3+", "Years Building"], ["5k+", "Users Served"], ["3", "Internships"]].map(([num, label]) => (
             <div key={label} style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "var(--font-display)", fontSize: "2.5rem", fontWeight: 300, color: "var(--accent)", lineHeight: 1 }}>
                 {num}
@@ -1002,7 +1005,7 @@ const Services = () => (
           What I Offer
         </div>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 300, letterSpacing: "-0.02em", color: "var(--text)", maxWidth: 600 }}>
-          Enterprise-grade <em style={{ fontStyle: "italic", color: "var(--accent)" }}>technical consulting</em>
+          What I <em style={{ fontStyle: "italic", color: "var(--accent)" }}>build & deliver</em>
         </h2>
       </motion.div>
 
@@ -1039,15 +1042,39 @@ const ProjectCard = ({ project, index }) => {
           borderRadius: "4px", padding: "3rem",
           position: "relative", overflow: "hidden",
           transition: "border-color 0.4s",
+          height: "100%", display: "flex", flexDirection: "column",
         }}
       >
-        {/* Year */}
+        {/* Year + link row */}
         <div style={{
-          position: "absolute", top: "2.5rem", right: "2.5rem",
-          fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-          color: "var(--muted)", letterSpacing: "0.1em",
+          position: "absolute", top: "2rem", right: "2rem",
+          display: "flex", alignItems: "center", gap: "1rem",
         }}>
-          {project.year}
+          <div style={{
+            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+            color: "var(--muted)", letterSpacing: "0.1em",
+          }}>
+            {project.year}
+          </div>
+          <motion.a
+            href={project.link}
+            target="_blank"
+            rel="noreferrer"
+            whileHover={{ scale: 1.1, color: "var(--accent)" }}
+            whileTap={{ scale: 0.95 }}
+            title="View Project"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 32, height: 32, borderRadius: "50%",
+              border: "1px solid rgba(200,169,110,0.3)",
+              color: "var(--muted)", textDecoration: "none",
+              fontSize: "0.85rem", cursor: "pointer",
+              transition: "color 0.2s, border-color 0.2s",
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            ↗
+          </motion.a>
         </div>
 
         {/* Index */}
@@ -1074,7 +1101,7 @@ const ProjectCard = ({ project, index }) => {
         <p style={{
           fontFamily: "var(--font-sans)", fontSize: "0.875rem",
           color: "var(--muted)", lineHeight: 1.75,
-          marginBottom: "2rem",
+          marginBottom: "2rem", flex: 1,
         }}>
           {project.desc}
         </p>
@@ -1090,8 +1117,8 @@ const ProjectCard = ({ project, index }) => {
           ↑ {project.metric}
         </div>
 
-        {/* Tags */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+        {/* Tags + view link */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
           {project.tags.map(tag => (
             <span key={tag} style={{
               fontFamily: "var(--font-mono)", fontSize: "0.65rem",
@@ -1103,6 +1130,25 @@ const ProjectCard = ({ project, index }) => {
             </span>
           ))}
         </div>
+
+        {/* Bottom CTA link */}
+        <motion.a
+          href={project.link}
+          target="_blank"
+          rel="noreferrer"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 6 }}
+          transition={{ duration: 0.25 }}
+          style={{
+            marginTop: "2rem",
+            display: "inline-flex", alignItems: "center", gap: "0.5rem",
+            fontFamily: "var(--font-mono)", fontSize: "0.7rem",
+            color: "var(--accent)", textDecoration: "none",
+            letterSpacing: "0.08em", textTransform: "uppercase",
+          }}
+        >
+          View Project <span>→</span>
+        </motion.a>
 
         {/* Glow */}
         <motion.div
@@ -1427,25 +1473,21 @@ export default function App() {
     setLoaded(true);
   }, []);
 
-  // Set page title and favicon
+  // Set page title and favicon — using data URI (no blob, no revocation bug)
   useEffect(() => {
     document.title = "Souvik Mahanta — Backend Engineer & AI Specialist";
 
-    // Inject SM favicon as inline SVG
-    const svgFavicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-      <rect width="64" height="64" rx="8" fill="#080808"/>
-      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
-        font-family="Georgia, serif" font-size="28" font-style="italic"
-        font-weight="400" fill="#c8a96e">SM</text>
-    </svg>`;
-    const blob = new Blob([svgFavicon], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const link = document.querySelector("link[rel~='icon']") || document.createElement("link");
+    const svgRaw = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="%23080808"/><text x="50%25" y="54%25" dominant-baseline="middle" text-anchor="middle" font-family="Georgia%2C serif" font-size="26" font-style="italic" font-weight="400" fill="%23c8a96e">SM</text></svg>`;
+    const dataURI = `data:image/svg+xml,${svgRaw}`;
+
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
     link.type = "image/svg+xml";
-    link.rel = "icon";
-    link.href = url;
-    document.head.appendChild(link);
-    return () => URL.revokeObjectURL(url);
+    link.href = dataURI;
   }, []);
 
   return (
