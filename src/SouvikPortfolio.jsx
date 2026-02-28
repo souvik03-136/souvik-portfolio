@@ -669,51 +669,43 @@ const SpotifyWidget = () => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [expanded, setExpanded] = useState(false); // mobile: collapsed by default
+  const [isMobile, setIsMobile] = useState(false);
   const audioRef = useRef(null);
 
-  // Create audio element once
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   useEffect(() => {
     const audio = new Audio(SONG.src);
     audio.preload = "metadata";
+    audio.volume = 0.23; // background music volume
     audioRef.current = audio;
 
-    audio.addEventListener("loadedmetadata", () => {
-      setDuration(Math.floor(audio.duration));
-    });
-    audio.addEventListener("timeupdate", () => {
-      setProgress(Math.floor(audio.currentTime));
-    });
-    audio.addEventListener("ended", () => {
-      setPlaying(false);
-      setProgress(0);
-    });
+    audio.addEventListener("loadedmetadata", () => setDuration(Math.floor(audio.duration)));
+    audio.addEventListener("timeupdate", () => setProgress(Math.floor(audio.currentTime)));
+    audio.addEventListener("ended", () => { setPlaying(false); setProgress(0); });
 
     const t = setTimeout(() => setVisible(true), 2800);
-
-    return () => {
-      audio.pause();
-      audio.src = "";
-      clearTimeout(t);
-    };
+    return () => { audio.pause(); audio.src = ""; clearTimeout(t); };
   }, []);
 
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (playing) {
-      audio.pause();
-      setPlaying(false);
-    } else {
-      audio.play().then(() => setPlaying(true)).catch(() => {});
-    }
+    if (playing) { audio.pause(); setPlaying(false); }
+    else { audio.play().then(() => setPlaying(true)).catch(() => {}); }
   };
 
   const scrub = (e) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const newTime = (x / rect.width) * duration;
+    const newTime = ((e.clientX - rect.left) / rect.width) * duration;
     audio.currentTime = newTime;
     setProgress(Math.floor(newTime));
   };
@@ -721,158 +713,216 @@ const SpotifyWidget = () => {
   const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
 
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="spotify-card"
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+  const SpotifyIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+    </svg>
+  );
+
+  if (!visible) return null;
+
+  // ── MOBILE: floating icon button → slide-up panel ──
+  if (isMobile) {
+    return (
+      <>
+        {/* Floating Spotify button */}
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          onClick={() => setExpanded(o => !o)}
           style={{
-            position: "fixed",
-            bottom: 32, right: 32,
-            width: 280, zIndex: 500,
-            background: "rgba(12,12,12,0.92)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "12px",
-            padding: "16px",
-            backdropFilter: "blur(24px)",
-            boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,110,0.06)",
+            position: "fixed", bottom: 24, right: 20,
+            width: 48, height: 48, borderRadius: "50%",
+            background: expanded ? "#1DB954" : "rgba(12,12,12,0.92)",
+            border: `1px solid ${expanded ? "#1DB954" : "rgba(255,255,255,0.12)"}`,
+            backdropFilter: "blur(20px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", zIndex: 600,
+            color: expanded ? "#000" : "#1DB954",
+            boxShadow: playing ? "0 0 20px rgba(29,185,84,0.4)" : "0 4px 20px rgba(0,0,0,0.5)",
+            transition: "background 0.3s, border-color 0.3s, box-shadow 0.3s",
           }}
         >
-          {/* Header */}
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            marginBottom: "14px",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="#1DB954">
-                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-              </svg>
-              <span style={{
-                fontFamily: "var(--font-mono)", fontSize: "0.6rem",
-                color: playing ? "#1DB954" : "var(--muted)",
-                letterSpacing: "0.15em", textTransform: "uppercase",
-                transition: "color 0.3s",
-              }}>
-                {playing ? "Now Playing" : "Paused"}
-              </span>
-            </div>
+          {/* Pulsing ring when playing */}
+          {playing && (
+            <motion.div
+              animate={{ scale: [1, 1.6], opacity: [0.4, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              style={{
+                position: "absolute", inset: -4,
+                borderRadius: "50%",
+                border: "2px solid #1DB954",
+                pointerEvents: "none",
+              }}
+            />
+          )}
+          <SpotifyIcon />
+        </motion.button>
 
-            {/* Animated equaliser bars */}
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: 14 }}>
-              {[1, 2, 3, 4].map(i => (
-                <motion.div
-                  key={i}
-                  animate={playing ? {
-                    height: ["3px", `${7 + i * 2}px`, "3px"],
-                  } : { height: "3px" }}
-                  transition={{
-                    duration: 0.45 + i * 0.12,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: i * 0.08,
-                  }}
-                  style={{ width: 3, background: "#1DB954", borderRadius: 2 }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Song info row */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
-            {/* Album art */}
-            <div style={{
-              width: 44, height: 44, borderRadius: "6px", flexShrink: 0,
-              overflow: "hidden",
-              boxShadow: playing ? "0 0 16px rgba(29,185,84,0.25)" : "none",
-              transition: "box-shadow 0.4s",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}>
-              <motion.img
-                src="/theme.jpeg"
-                alt="Album art"
-                animate={playing ? { scale: [1, 1.04, 1] } : { scale: 1 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        {/* Slide-up panel */}
+        <AnimatePresence>
+          {expanded && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setExpanded(false)}
                 style={{
-                  width: "100%", height: "100%",
-                  objectFit: "cover", display: "block",
+                  position: "fixed", inset: 0, zIndex: 590,
+                  background: "rgba(0,0,0,0.4)",
+                  backdropFilter: "blur(4px)",
                 }}
               />
-            </div>
+              {/* Card */}
+              <motion.div
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100%", opacity: 0 }}
+                transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                style={{
+                  position: "fixed", bottom: 84, right: 16, left: 16,
+                  zIndex: 601,
+                  background: "rgba(10,10,10,0.96)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "16px", padding: "20px",
+                  backdropFilter: "blur(30px)",
+                  boxShadow: "0 -8px 40px rgba(0,0,0,0.6)",
+                }}
+              >
+                <WidgetContent
+                  playing={playing} pct={pct} progress={progress}
+                  duration={duration} fmt={fmt} togglePlay={togglePlay}
+                  scrub={scrub} SpotifyIcon={SpotifyIcon}
+                />
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
 
-            {/* Title + artist */}
-            <div style={{ overflow: "hidden", flex: 1 }}>
-              <div style={{
-                fontFamily: "var(--font-sans)", fontSize: "0.78rem",
-                fontWeight: 600, color: "var(--text)",
-                whiteSpace: "nowrap", overflow: "hidden",
-                textOverflow: "ellipsis", lineHeight: 1.3,
-              }}>
-                {SONG.title}
-              </div>
-              <div style={{
-                fontFamily: "var(--font-mono)", fontSize: "0.62rem",
-                color: "var(--muted)", marginTop: "3px",
-              }}>
-                {SONG.artist}
-              </div>
-            </div>
-
-            {/* Play / Pause button */}
-            <motion.button
-              whileHover={{ scale: 1.12 }}
-              whileTap={{ scale: 0.88 }}
-              onClick={togglePlay}
-              style={{
-                width: 34, height: 34, borderRadius: "50%",
-                background: playing ? "#1DB954" : "rgba(255,255,255,0.12)",
-                border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, transition: "background 0.25s",
-                color: playing ? "#000" : "#fff",
-                fontSize: playing ? "0.55rem" : "0.75rem",
-                paddingLeft: playing ? 0 : "2px",
-              }}
-            >
-              {playing ? "❚❚" : "▶"}
-            </motion.button>
-          </div>
-
-          {/* Progress bar — clickable scrubber */}
-          <div>
-            <div
-              onClick={scrub}
-              style={{
-                width: "100%", height: 4,
-                background: "rgba(255,255,255,0.08)",
-                borderRadius: 2, cursor: "pointer",
-                marginBottom: "6px", position: "relative",
-              }}
-            >
-              <div style={{
-                height: "100%", borderRadius: 2,
-                background: "linear-gradient(to right, #1DB954, #1ed760)",
-                width: `${pct}%`,
-                transition: "width 0.8s linear",
-              }} />
-            </div>
-            <div style={{
-              display: "flex", justifyContent: "space-between",
-              fontFamily: "var(--font-mono)", fontSize: "0.58rem",
-              color: "rgba(255,255,255,0.22)",
-            }}>
-              <span>{fmt(progress)}</span>
-              <span>{duration > 0 ? fmt(duration) : "--:--"}</span>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+  // ── DESKTOP: always-visible card ──
+  return (
+    <motion.div
+      className="spotify-card"
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: "fixed", bottom: 32, right: 32,
+        width: 280, zIndex: 500,
+        background: "rgba(12,12,12,0.92)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "12px", padding: "16px",
+        backdropFilter: "blur(24px)",
+        boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,110,0.06)",
+      }}
+    >
+      <WidgetContent
+        playing={playing} pct={pct} progress={progress}
+        duration={duration} fmt={fmt} togglePlay={togglePlay}
+        scrub={scrub} SpotifyIcon={SpotifyIcon}
+      />
+    </motion.div>
   );
 };
+
+// Shared widget inner content
+const WidgetContent = ({ playing, pct, progress, duration, fmt, togglePlay, scrub, SpotifyIcon }) => (
+  <>
+    {/* Header */}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <span style={{ color: "#1DB954" }}><SpotifyIcon /></span>
+        <span style={{
+          fontFamily: "var(--font-mono)", fontSize: "0.6rem",
+          color: playing ? "#1DB954" : "var(--muted)",
+          letterSpacing: "0.15em", textTransform: "uppercase",
+          transition: "color 0.3s",
+        }}>
+          {playing ? "Now Playing" : "Paused"}
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: 14 }}>
+        {[1, 2, 3, 4].map(i => (
+          <motion.div
+            key={i}
+            animate={playing ? { height: ["3px", `${7 + i * 2}px`, "3px"] } : { height: "3px" }}
+            transition={{ duration: 0.45 + i * 0.12, repeat: Infinity, ease: "easeInOut", delay: i * 0.08 }}
+            style={{ width: 3, background: "#1DB954", borderRadius: 2 }}
+          />
+        ))}
+      </div>
+    </div>
+
+    {/* Song row */}
+    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: "6px", flexShrink: 0,
+        overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: playing ? "0 0 16px rgba(29,185,84,0.25)" : "none",
+        transition: "box-shadow 0.4s",
+      }}>
+        <motion.img
+          src="/theme.jpeg" alt="Album art"
+          animate={playing ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      </div>
+      <div style={{ overflow: "hidden", flex: 1 }}>
+        <div style={{
+          fontFamily: "var(--font-sans)", fontSize: "0.78rem", fontWeight: 600,
+          color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden",
+          textOverflow: "ellipsis", lineHeight: 1.3,
+        }}>{SONG.title}</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.62rem", color: "var(--muted)", marginTop: "3px" }}>
+          {SONG.artist}
+        </div>
+      </div>
+      <motion.button
+        whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }}
+        onClick={togglePlay}
+        style={{
+          width: 34, height: 34, borderRadius: "50%",
+          background: playing ? "#1DB954" : "rgba(255,255,255,0.12)",
+          border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0, transition: "background 0.25s",
+          color: playing ? "#000" : "#fff",
+          fontSize: playing ? "0.55rem" : "0.75rem",
+          paddingLeft: playing ? 0 : "2px",
+        }}
+      >
+        {playing ? "❚❚" : "▶"}
+      </motion.button>
+    </div>
+
+    {/* Progress */}
+    <div onClick={scrub} style={{
+      width: "100%", height: 4, background: "rgba(255,255,255,0.08)",
+      borderRadius: 2, cursor: "pointer", marginBottom: "6px",
+    }}>
+      <div style={{
+        height: "100%", borderRadius: 2,
+        background: "linear-gradient(to right, #1DB954, #1ed760)",
+        width: `${pct}%`, transition: "width 0.8s linear",
+      }} />
+    </div>
+    <div style={{
+      display: "flex", justifyContent: "space-between",
+      fontFamily: "var(--font-mono)", fontSize: "0.58rem",
+      color: "rgba(255,255,255,0.22)",
+    }}>
+      <span>{fmt(progress)}</span>
+      <span>{duration > 0 ? fmt(duration) : "--:--"}</span>
+    </div>
+  </>
+);
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
 
@@ -1062,7 +1112,7 @@ const Hero = () => {
             display: "flex", flexDirection: "column", gap: "2rem",
           }}
         >
-          {[["3+", "Years Building"], ["5k+", "Users Served"], ["3+", "Internships"]].map(([num, label]) => (
+          {[["3+", "Years Building"], ["5k+", "Users Served"], ["3", "Internships"]].map(([num, label]) => (
             <div key={label} style={{ textAlign: "right" }}>
               <div style={{ fontFamily: "var(--font-display)", fontSize: "2.5rem", fontWeight: 300, color: "var(--accent)", lineHeight: 1 }}>
                 {num}
@@ -2079,7 +2129,7 @@ export default function App() {
 
   // Set page title and favicon — using data URI (no blob, no revocation bug)
   useEffect(() => {
-    document.title = "Souvik Mahanta - Backend Engineer & AI Specialist";
+    document.title = "Souvik Mahanta";
 
     const svgRaw = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="%23080808"/><text x="50%25" y="54%25" dominant-baseline="middle" text-anchor="middle" font-family="Georgia%2C serif" font-size="26" font-style="italic" font-weight="400" fill="%23c8a96e">SM</text></svg>`;
     const dataURI = `data:image/svg+xml,${svgRaw}`;
