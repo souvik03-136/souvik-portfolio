@@ -30,8 +30,8 @@
       onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" /></noscript>
 
-    <!-- FIX: Preload LCP image — update to .webp after converting -->
-    <link rel="preload" as="image" href="/assets/profile/profile.png" fetchpriority="high" />
+    <!-- FIX: Preload LCP image as WebP -->
+    <link rel="preload" as="image" href="/assets/profile/profile.webp" fetchpriority="high" type="image/webp" />
 
     <!-- FIX: GTM deferred — was blocking 138ms on main thread -->
     <script>
