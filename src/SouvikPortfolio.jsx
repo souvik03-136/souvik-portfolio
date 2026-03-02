@@ -1,9 +1,6 @@
-// SouvikPortfolio.jsx
-// Ultra-premium cinematic portfolio for Souvik Mahanta
-
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue, useAnimationFrame } from "framer-motion";
-import profileImg from "./assets/profile/profile.png";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
+import profileImg from "./assets/profile/profile.webp";
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
@@ -57,11 +54,68 @@ const SKILLS = [
   { label: "Blockchain", items: ["Smart Contracts", "DApps", "Cryptography", "Web3"] },
 ];
 
+const EXPERIENCE = [
+  {
+    role: "Software Engineer",
+    company: "Stealth AI Health Tech Startup",
+    period: "Feb 2026 — Present",
+    type: "Full-time",
+    points: [
+      "Integrated WhatsApp Cloud API to power a conversational AI assistant with real-time webhook handling.",
+      "Built a multi-stage onboarding system with stateful conversation flows and user data validation.",
+      "Designed a modular backend connecting the messaging layer to AI services for contextual, dynamic responses.",
+    ],
+    tags: ["WhatsApp API", "AI", "Node.js", "Webhooks"],
+  },
+  {
+    role: "Data & AI Intern",
+    company: "Indium Software",
+    period: "May 2025 — Jul 2025",
+    type: "Internship · Remote",
+    points: [
+      "Built LangGraph-based multi-agent systems on Databricks Mosaic AI - reduced manual code review time by 40%.",
+      "Deployed multi-LLM routing logic cutting API latency by 45% and reducing costs significantly.",
+      "Automated test generation with LLM agents, improving code coverage by 30%.",
+    ],
+    tags: ["Python", "LangGraph", "Databricks", "MLflow", "LLMs"],
+  },
+  {
+    role: "Software Development Engineer Intern",
+    company: "Agni Green Power Limited",
+    period: "May 2024 — Jul 2024",
+    type: "Internship · Kolkata",
+    points: [
+      "Engineered a client service workflow module that improved operational efficiency by 25%.",
+      "Built a centralized MySQL admin dashboard reducing data retrieval time by 30%.",
+      "Automated performance reporting, enabling faster data-driven decisions across teams.",
+    ],
+    tags: ["PHP", "MySQL", "JavaScript", "jQuery"],
+  },
+  {
+    role: "Senior Core Member & Security Analyst",
+    company: "Google Developer Student Clubs — VIT",
+    period: "May 2023 — Nov 2025",
+    type: "Leadership",
+    points: [
+      "Ran cybersecurity workshops for 3,000+ attendees; mentored 200+ students on secure coding.",
+      "Managed a 36-hour international CTF competition with 5,000+ participants, growing global reach by 15%.",
+    ],
+    tags: ["Cybersecurity", "CTF", "Mentorship", "Community"],
+  },
+];
+
+// ─── SONG CONFIG ──────────────────────────────────────────────────────────────
+const SONG = {
+  title: "This Is Who I Am",
+  artist: "Celeste",
+  src: "/theme.mp3",
+};
+
 // ─── GLOBAL STYLES ────────────────────────────────────────────────────────────
 
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap');
+    /* FIX: Fonts loaded via <link> in index.html — @import removed to eliminate render-blocking chain */
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -71,7 +125,8 @@ const GlobalStyles = () => (
       --surface2: #141414;
       --border: rgba(255,255,255,0.06);
       --text: #f0ede8;
-      --muted: rgba(240,237,232,0.4);
+      /* FIX: Bumped muted opacity from 0.4 → 0.55 for WCAG AA contrast compliance */
+      --muted: rgba(240,237,232,0.55);
       --accent: #c8a96e;
       --accent2: #7eb8c9;
       --glow: rgba(200,169,110,0.15);
@@ -90,7 +145,6 @@ const GlobalStyles = () => (
       cursor: none;
     }
 
-    /* Show native cursor over scrollbar */
     body:has(::-webkit-scrollbar:hover) { cursor: default; }
 
     @media (max-width: 768px) {
@@ -114,24 +168,16 @@ const GlobalStyles = () => (
     @media (max-width: 768px) {
       .container { padding: 0 24px; }
       .section { padding: 80px 0; }
-
-      /* Hero needs top padding on mobile for the nav */
       .hero-section {
         padding-top: 120px !important;
         min-height: 100svh !important;
         align-items: flex-start !important;
       }
-
-      /* About section mobile grid */
       .about-grid {
         grid-template-columns: 1fr !important;
         gap: 3rem !important;
       }
-
-      /* Hero stats hide on mobile */
       .hero-stats { display: none !important; }
-
-      /* Footer grid mobile — brand full width, then 2 cols */
       .footer-grid {
         grid-template-columns: 1fr 1fr !important;
         gap: 2rem !important;
@@ -139,24 +185,16 @@ const GlobalStyles = () => (
       .footer-brand {
         grid-column: 1 / -1 !important;
       }
-
-      /* Experience row mobile */
       .exp-row {
         grid-template-columns: 1fr !important;
         gap: 0.75rem !important;
       }
-
-      /* Nav links hide on mobile, hamburger shows */
       .nav-links { display: none !important; }
       .hamburger { display: flex !important; }
-
-      /* Profile image mobile */
       .profile-card {
         max-width: 320px;
         margin: 0 auto;
       }
-
-      /* Spotify card mobile */
       .spotify-card {
         right: 16px !important;
         bottom: 90px !important;
@@ -171,7 +209,6 @@ const GlobalStyles = () => (
       }
     }
 
-    /* Preloader */
     .preloader {
       position: fixed; inset: 0;
       background: var(--bg);
@@ -179,16 +216,8 @@ const GlobalStyles = () => (
       display: flex; align-items: center; justify-content: center;
     }
 
-    /* SVG signature draw */
-    @keyframes drawSignature {
-      from { stroke-dashoffset: 2000; opacity: 0.2; }
-      to { stroke-dashoffset: 0; opacity: 1; }
-    }
-
-    /* Magnetic button */
     .magnetic { display: inline-block; }
 
-    /* Grain overlay */
     .grain {
       position: fixed; inset: -200%;
       width: 400%; height: 400%;
@@ -210,12 +239,10 @@ const GlobalStyles = () => (
       90% { transform: translate(-2%, 4%); }
     }
 
-    /* Hide custom cursor on mobile */
     @media (max-width: 768px) {
       #cursor-dot, #cursor-ring { display: none !important; }
     }
 
-    /* Line clamp */
     .line { display: block; overflow: hidden; }
   `}</style>
 );
@@ -231,10 +258,9 @@ const CustomCursor = () => {
   const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
-    const SCROLLBAR_WIDTH = 16; // hide cursor when over native scrollbar
+    const SCROLLBAR_WIDTH = 16;
 
     const onMove = (e) => {
-      // If mouse is over the scrollbar zone — hide custom cursor, let native show
       const overScrollbar = e.clientX > window.innerWidth - SCROLLBAR_WIDTH;
       if (cursorRef.current) cursorRef.current.style.opacity = overScrollbar ? "0" : "1";
       if (followerRef.current) followerRef.current.style.opacity = overScrollbar ? "0" : "1";
@@ -314,13 +340,15 @@ const CustomCursor = () => {
 };
 
 // ─── PRELOADER ────────────────────────────────────────────────────────────────
+// FIX: Reduced timing from 2200/3200ms → 1200/1800ms to reduce LCP penalty
+// The preloader text was being picked up as the LCP element — faster exit fixes this
 
 const Preloader = ({ onComplete }) => {
-  const [phase, setPhase] = useState("draw"); // draw → shatter → done
+  const [phase, setPhase] = useState("draw");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("shatter"), 2200);
-    const t2 = setTimeout(() => { setPhase("done"); onComplete(); }, 3200);
+    const t1 = setTimeout(() => setPhase("shatter"), 1200); // was 2200
+    const t2 = setTimeout(() => { setPhase("done"); onComplete(); }, 1800); // was 3200
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [onComplete]);
 
@@ -331,17 +359,18 @@ const Preloader = ({ onComplete }) => {
       {phase !== "done" && (
         <motion.div
           className="preloader"
+          // FIX: aria-hidden so the preloader text isn't announced by screen readers
+          // and doesn't compete as a meaningful LCP candidate
+          aria-hidden="true"
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >
-          {/* Signature SVG drawn via stroke animation */}
           <motion.div
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: phase === "shatter" ? 1.15 : 1, opacity: 1 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            {/* Signature text (fallback for SVG) */}
             <motion.div
               style={{
                 fontFamily: "var(--font-display)",
@@ -359,7 +388,6 @@ const Preloader = ({ onComplete }) => {
               Souvik
             </motion.div>
 
-            {/* Shatter fragments */}
             {phase === "shatter" && fragments.map(i => (
               <motion.div
                 key={i}
@@ -386,7 +414,6 @@ const Preloader = ({ onComplete }) => {
             ))}
           </motion.div>
 
-          {/* Loading counter */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: phase === "shatter" ? 0 : 1 }}
@@ -416,7 +443,6 @@ const Nav = ({ visible }) => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Lock body scroll when menu open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -440,7 +466,6 @@ const Nav = ({ visible }) => {
           transition: "background 0.4s",
         }}
       >
-        {/* SM logo — clicks to top */}
         <motion.a
           href="/"
           onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); closeMenu(); }}
@@ -454,7 +479,6 @@ const Nav = ({ visible }) => {
           SM
         </motion.a>
 
-        {/* Desktop links */}
         <div style={{ display: "flex", gap: "2.5rem", alignItems: "center" }} className="nav-links">
           {NAV_LINKS.map(link => (
             <motion.a
@@ -488,11 +512,13 @@ const Nav = ({ visible }) => {
           </motion.a>
         </div>
 
-        {/* Hamburger — mobile only */}
+        {/* FIX: Added aria-label and aria-expanded for accessibility */}
         <motion.button
           className="hamburger"
           onClick={() => setMenuOpen(o => !o)}
           whileTap={{ scale: 0.9 }}
+          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={menuOpen}
           style={{
             display: "none",
             background: "none", border: "none",
@@ -519,7 +545,6 @@ const Nav = ({ visible }) => {
         </motion.button>
       </motion.nav>
 
-      {/* Mobile fullscreen menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -582,7 +607,6 @@ const Nav = ({ visible }) => {
 // ─── IMAGE TRAIL ──────────────────────────────────────────────────────────────
 
 const ImageTrail = () => {
-  // Use abstract CSS art since we can't load files
   const colors = [
     ["#c8a96e", "#1a1208"],
     ["#7eb8c9", "#081218"],
@@ -599,7 +623,6 @@ const ImageTrail = () => {
     const dx = e.clientX - lastPos.current.x;
     const dy = e.clientY - lastPos.current.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-
     if (dist < 80) return;
     lastPos.current = { x: e.clientX, y: e.clientY };
 
@@ -608,10 +631,7 @@ const ImageTrail = () => {
     const rotate = (Math.random() - 0.5) * 30;
     const size = 80 + Math.random() * 60;
 
-    setImages(prev => [...prev.slice(-6), {
-      id, x: e.clientX, y: e.clientY, color, rotate, size,
-    }]);
-
+    setImages(prev => [...prev.slice(-6), { id, x: e.clientX, y: e.clientY, color, rotate, size }]);
     setTimeout(() => {
       setImages(prev => prev.filter(img => img.id !== id));
     }, 1200);
@@ -623,7 +643,7 @@ const ImageTrail = () => {
   }, [onMouseMove]);
 
   return (
-    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 5 }}>
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 5 }} aria-hidden="true">
       {images.map(img => (
         <motion.div
           key={img.id}
@@ -656,22 +676,19 @@ const ImageTrail = () => {
   );
 };
 
-// ─── SPOTIFY NOW PLAYING ──────────────────────────────────────────────────────
-
-const SONG = {
-  title: "This Is Who I Am",
-  artist: "Celeste",
-  src: "/theme.mp3",
-};
+// ─── SPOTIFY WIDGET ───────────────────────────────────────────────────────────
+// FIX: audio.src is NOT set until first play click — eliminates the 5.46 MB
+//      network payload on page load (was the #1 LCP killer)
 
 const SpotifyWidget = () => {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [visible, setVisible] = useState(false);
-  const [expanded, setExpanded] = useState(false); // mobile: collapsed by default
+  const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const audioRef = useRef(null);
+  const srcLoadedRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -681,24 +698,37 @@ const SpotifyWidget = () => {
   }, []);
 
   useEffect(() => {
-    const audio = new Audio(SONG.src);
-    audio.preload = "metadata";
-    audio.volume = 0.23; // background music volume
+    // FIX: Create audio element but do NOT set src yet — defer the 5.46 MB fetch
+    const audio = new Audio();
+    audio.preload = "none";
+    audio.volume = 0.23;
     audioRef.current = audio;
 
     audio.addEventListener("loadedmetadata", () => setDuration(Math.floor(audio.duration)));
     audio.addEventListener("timeupdate", () => setProgress(Math.floor(audio.currentTime)));
     audio.addEventListener("ended", () => { setPlaying(false); setProgress(0); });
 
-    const t = setTimeout(() => setVisible(true), 2800);
+    const t = setTimeout(() => setVisible(true), 2000); // slightly earlier since preloader is faster
     return () => { audio.pause(); audio.src = ""; clearTimeout(t); };
   }, []);
 
+  // FIX: Lazy-load the src only on first play attempt
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (playing) { audio.pause(); setPlaying(false); }
-    else { audio.play().then(() => setPlaying(true)).catch(() => {}); }
+
+    if (!srcLoadedRef.current) {
+      audio.src = SONG.src;
+      audio.preload = "auto";
+      srcLoadedRef.current = true;
+    }
+
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+    } else {
+      audio.play().then(() => setPlaying(true)).catch(() => {});
+    }
   };
 
   const scrub = (e) => {
@@ -714,23 +744,24 @@ const SpotifyWidget = () => {
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
 
   const SpotifyIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
     </svg>
   );
 
   if (!visible) return null;
 
-  // ── MOBILE: floating icon button → slide-up panel ──
   if (isMobile) {
     return (
       <>
-        {/* Floating Spotify button */}
+        {/* FIX: Added aria-label to the floating Spotify button */}
         <motion.button
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
           onClick={() => setExpanded(o => !o)}
+          aria-label={expanded ? "Close music player" : "Open music player"}
+          aria-expanded={expanded}
           style={{
             position: "fixed", bottom: 24, right: 20,
             width: 48, height: 48, borderRadius: "50%",
@@ -744,7 +775,6 @@ const SpotifyWidget = () => {
             transition: "background 0.3s, border-color 0.3s, box-shadow 0.3s",
           }}
         >
-          {/* Pulsing ring when playing */}
           {playing && (
             <motion.div
               animate={{ scale: [1, 1.6], opacity: [0.4, 0] }}
@@ -760,11 +790,9 @@ const SpotifyWidget = () => {
           <SpotifyIcon />
         </motion.button>
 
-        {/* Slide-up panel */}
         <AnimatePresence>
           {expanded && (
             <>
-              {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -776,7 +804,6 @@ const SpotifyWidget = () => {
                   backdropFilter: "blur(4px)",
                 }}
               />
-              {/* Card */}
               <motion.div
                 initial={{ y: "100%", opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -805,7 +832,6 @@ const SpotifyWidget = () => {
     );
   }
 
-  // ── DESKTOP: always-visible card ──
   return (
     <motion.div
       className="spotify-card"
@@ -831,10 +857,8 @@ const SpotifyWidget = () => {
   );
 };
 
-// Shared widget inner content
 const WidgetContent = ({ playing, pct, progress, duration, fmt, togglePlay, scrub, SpotifyIcon }) => (
   <>
-    {/* Header */}
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <span style={{ color: "#1DB954" }}><SpotifyIcon /></span>
@@ -847,7 +871,7 @@ const WidgetContent = ({ playing, pct, progress, duration, fmt, togglePlay, scru
           {playing ? "Now Playing" : "Paused"}
         </span>
       </div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: 14 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: 14 }} aria-hidden="true">
         {[1, 2, 3, 4].map(i => (
           <motion.div
             key={i}
@@ -859,7 +883,6 @@ const WidgetContent = ({ playing, pct, progress, duration, fmt, togglePlay, scru
       </div>
     </div>
 
-    {/* Song row */}
     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
       <div style={{
         width: 44, height: 44, borderRadius: "6px", flexShrink: 0,
@@ -868,10 +891,12 @@ const WidgetContent = ({ playing, pct, progress, duration, fmt, togglePlay, scru
         transition: "box-shadow 0.4s",
       }}>
         <motion.img
-          src="/theme.jpeg" alt="Album art"
+          src="/theme.jpeg" alt="Album art for This Is Who I Am by Celeste"
           animate={playing ? { scale: [1, 1.04, 1] } : { scale: 1 }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          width={44}
+          height={44}
         />
       </div>
       <div style={{ overflow: "hidden", flex: 1 }}>
@@ -884,9 +909,11 @@ const WidgetContent = ({ playing, pct, progress, duration, fmt, togglePlay, scru
           {SONG.artist}
         </div>
       </div>
+      {/* FIX: Added aria-label to play/pause button */}
       <motion.button
         whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }}
         onClick={togglePlay}
+        aria-label={playing ? "Pause" : "Play"}
         style={{
           width: 34, height: 34, borderRadius: "50%",
           background: playing ? "#1DB954" : "rgba(255,255,255,0.12)",
@@ -902,11 +929,18 @@ const WidgetContent = ({ playing, pct, progress, duration, fmt, togglePlay, scru
       </motion.button>
     </div>
 
-    {/* Progress */}
-    <div onClick={scrub} style={{
-      width: "100%", height: 4, background: "rgba(255,255,255,0.08)",
-      borderRadius: 2, cursor: "pointer", marginBottom: "6px",
-    }}>
+    <div
+      onClick={scrub}
+      role="slider"
+      aria-label="Song progress"
+      aria-valuenow={progress}
+      aria-valuemin={0}
+      aria-valuemax={duration}
+      style={{
+        width: "100%", height: 4, background: "rgba(255,255,255,0.08)",
+        borderRadius: 2, cursor: "pointer", marginBottom: "6px",
+      }}
+    >
       <div style={{
         height: "100%", borderRadius: 2,
         background: "linear-gradient(to right, #1DB954, #1ed760)",
@@ -916,7 +950,7 @@ const WidgetContent = ({ playing, pct, progress, duration, fmt, togglePlay, scru
     <div style={{
       display: "flex", justifyContent: "space-between",
       fontFamily: "var(--font-mono)", fontSize: "0.58rem",
-      color: "rgba(255,255,255,0.22)",
+      color: "rgba(255,255,255,0.3)", // FIX: slightly brighter for contrast
     }}>
       <span>{fmt(progress)}</span>
       <span>{duration > 0 ? fmt(duration) : "--:--"}</span>
@@ -946,13 +980,11 @@ const Hero = () => {
       minHeight: "100vh", display: "flex", alignItems: "center",
       position: "relative", overflow: "hidden",
     }}>
-      {/* Background gradient */}
       <div style={{
         position: "absolute", inset: 0,
         background: "radial-gradient(ellipse 80% 60% at 20% 50%, rgba(200,169,110,0.04) 0%, transparent 70%), radial-gradient(ellipse 60% 80% at 80% 20%, rgba(126,184,201,0.04) 0%, transparent 70%)",
       }} />
 
-      {/* Vertical line */}
       <motion.div
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
@@ -962,11 +994,11 @@ const Hero = () => {
           width: 1, background: "var(--border)",
           transformOrigin: "top",
         }}
+        aria-hidden="true"
       />
 
       <motion.div className="container" style={{ y, opacity, position: "relative", zIndex: 10 }}>
         <div style={{ maxWidth: 900 }}>
-          {/* Eyebrow */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -978,11 +1010,10 @@ const Hero = () => {
               display: "flex", alignItems: "center", gap: "1rem",
             }}
           >
-            <span style={{ display: "block", width: 40, height: 1, background: "var(--accent)" }} />
+            <span style={{ display: "block", width: 40, height: 1, background: "var(--accent)" }} aria-hidden="true" />
             Explorer of Ideas. Builder by Nature.
           </motion.div>
 
-          {/* Main headline */}
           <div style={{ overflow: "hidden", marginBottom: "0.5rem" }}>
             <motion.h1
               initial={{ y: "100%" }}
@@ -998,7 +1029,6 @@ const Hero = () => {
             </motion.h1>
           </div>
 
-          {/* Animated word */}
           <div style={{ overflow: "hidden", marginBottom: "2.5rem", height: "clamp(3rem, 7vw, 6.5rem)", display: "flex", alignItems: "center" }}>
             <AnimatePresence mode="wait">
               <motion.div
@@ -1012,13 +1042,13 @@ const Hero = () => {
                   fontWeight: 300, fontStyle: "italic", lineHeight: 0.95,
                   color: "var(--accent)", letterSpacing: "-0.02em",
                 }}
+                aria-live="polite"
               >
                 {words[wordIdx]}
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Description */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1032,7 +1062,6 @@ const Hero = () => {
             Backend engineer & AI systems specialist. I build scalable backend infrastructure, autonomous AI agents, and high-performance distributed systems - from multi-agent LLM pipelines to production Go backends.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1055,8 +1084,7 @@ const Hero = () => {
             </motion.a>
             <motion.a
               href="https://drive.google.com/file/d/1TT8yKIxCNr94h_04dBTR-mwi1HHLEt-K/view"
-              target="_blank"
-              rel="noreferrer"
+              target="_blank" rel="noreferrer"
               whileHover={{ scale: 1.02, borderColor: "var(--accent)", color: "var(--accent)" }}
               whileTap={{ scale: 0.98 }}
               style={{
@@ -1073,7 +1101,7 @@ const Hero = () => {
             </motion.a>
             <motion.a
               href="https://github.com/souvik03-136"
-              target="_blank"
+              target="_blank" rel="noreferrer"
               whileHover={{ color: "var(--accent)" }}
               style={{
                 fontFamily: "var(--font-mono)", fontSize: "0.75rem",
@@ -1087,7 +1115,7 @@ const Hero = () => {
             </motion.a>
             <motion.a
               href="https://linkedin.com/in/souvik-mahanta"
-              target="_blank"
+              target="_blank" rel="noreferrer"
               whileHover={{ color: "var(--accent2)" }}
               style={{
                 fontFamily: "var(--font-mono)", fontSize: "0.75rem",
@@ -1101,7 +1129,6 @@ const Hero = () => {
           </motion.div>
         </div>
 
-        {/* Stats */}
         <motion.div
           className="hero-stats"
           initial={{ opacity: 0 }}
@@ -1111,6 +1138,7 @@ const Hero = () => {
             position: "absolute", right: 0, bottom: "-10vh",
             display: "flex", flexDirection: "column", gap: "2rem",
           }}
+          aria-label="Quick stats"
         >
           {[["3+", "Years Building"], ["5k+", "Users Served"], ["3", "Internships"]].map(([num, label]) => (
             <div key={label} style={{ textAlign: "right" }}>
@@ -1125,7 +1153,6 @@ const Hero = () => {
         </motion.div>
       </motion.div>
 
-      {/* Scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -1134,6 +1161,7 @@ const Hero = () => {
           position: "absolute", bottom: "5vh", left: "50%", transform: "translateX(-50%)",
           display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem",
         }}
+        aria-hidden="true"
       >
         <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--muted)", letterSpacing: "0.2em" }}>SCROLL</div>
         <motion.div
@@ -1147,19 +1175,17 @@ const Hero = () => {
 };
 
 // ─── ABOUT ────────────────────────────────────────────────────────────────────
+// FIX: Added explicit width/height on <img> to eliminate CLS
+// Profile image should be converted to WebP — see instructions below
 
 const About = () => {
   const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const x = useTransform(scrollYProgress, [0, 1], [-40, 40]);
 
   return (
     <section id="about" className="section" ref={ref} style={{ position: "relative", overflow: "hidden" }}>
       <div className="container">
         <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6rem", alignItems: "center" }}>
-          {/* Left: Profile visual */}
           <motion.div className="profile-card" style={{ position: "relative" }}>
-            {/* Profile image placeholder with 3D tilt */}
             <motion.div
               whileHover={{ rotateY: -5, rotateX: 3, scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -1172,10 +1198,19 @@ const About = () => {
                 boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
               }}
             >
-              {/* Actual profile image */}
+              {/*
+                FIX: Added explicit width + height attributes to prevent CLS.
+                ACTION REQUIRED: Convert profile.png to profile.webp using squoosh.app
+                or `npx @squoosh/cli --webp '{"quality":80}' src/assets/profile/profile.png`
+                Then update the import at the top of this file to import profileImg from "./assets/profile/profile.webp"
+              */}
               <img
                 src={profileImg}
-                alt="Souvik Mahanta"
+                alt="Souvik Mahanta - Backend Engineer and AI Systems Specialist"
+                width={510}
+                height={638}
+                loading="eager"
+                decoding="async"
                 style={{
                   width: "100%",
                   height: "100%",
@@ -1184,19 +1219,16 @@ const About = () => {
                   display: "block",
                 }}
               />
-              {/* Subtle golden overlay at bottom for cinematic depth */}
               <div style={{
                 position: "absolute", inset: 0,
                 background: "linear-gradient(to top, rgba(8,8,8,0.5) 0%, transparent 50%)",
                 pointerEvents: "none",
               }} />
-              {/* Accent glow overlay */}
               <div style={{
                 position: "absolute", inset: 0,
                 background: "radial-gradient(ellipse at 30% 20%, rgba(200,169,110,0.06) 0%, transparent 60%)",
                 pointerEvents: "none",
               }} />
-              {/* Decorative border inset */}
               <div style={{
                 position: "absolute", inset: "12px",
                 border: "1px solid rgba(200,169,110,0.12)",
@@ -1205,7 +1237,6 @@ const About = () => {
               }} />
             </motion.div>
 
-            {/* Floating tag */}
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
@@ -1222,7 +1253,6 @@ const About = () => {
             </motion.div>
           </motion.div>
 
-          {/* Right: Text */}
           <div>
             <motion.div
               initial={{ opacity: 0, x: 30 }}
@@ -1236,7 +1266,7 @@ const About = () => {
                 textTransform: "uppercase", marginBottom: "1.5rem",
                 display: "flex", alignItems: "center", gap: "1rem",
               }}>
-                <span style={{ display: "block", width: 30, height: 1, background: "var(--accent)" }} />
+                <span style={{ display: "block", width: 30, height: 1, background: "var(--accent)" }} aria-hidden="true" />
                 About
               </div>
 
@@ -1259,7 +1289,7 @@ const About = () => {
                 fontFamily: "var(--font-sans)", fontSize: "0.95rem",
                 color: "var(--muted)", lineHeight: 1.8, marginBottom: "3rem",
               }}>
-                From AI multi-agent systems at Indium Software to high-scale backend infrastructure serving 5,000+ users - I bring structure to chaos and clarity to complexity. Fluent in English, Bengali, Hindi, and elementary German.
+                From AI multi-agent systems at Indium Software to high-scale backend infrastructure serving 5,000+ users — I bring structure to chaos and clarity to complexity. Fluent in English, Bengali, Hindi, and elementary German.
               </p>
 
               <div style={{ display: "flex", gap: "2rem" }}>
@@ -1280,123 +1310,71 @@ const About = () => {
 
 // ─── SKILLS ───────────────────────────────────────────────────────────────────
 
-const Skills = () => {
-  return (
-    <section id="skills" className="section" style={{ background: "var(--surface)" }}>
-      <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          style={{ textAlign: "center", marginBottom: "5rem" }}
-        >
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--accent)", letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: "1rem" }}>
-            Technical Stack
-          </div>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 300, letterSpacing: "-0.02em", color: "var(--text)" }}>
-            Engineered <em style={{ fontStyle: "italic", color: "var(--accent)" }}>expertise</em>
-          </h2>
-        </motion.div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
-          {SKILLS.map((skill, i) => (
-            <motion.div
-              key={skill.label}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.7 }}
-              whileHover={{ borderColor: "rgba(200,169,110,0.3)", y: -4 }}
-              style={{
-                background: "var(--bg)", border: "1px solid var(--border)",
-                borderRadius: "4px", padding: "2rem",
-                transition: "border-color 0.3s, transform 0.3s",
-              }}
-            >
-              <div style={{
-                fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-                color: "var(--accent)", letterSpacing: "0.2em",
-                textTransform: "uppercase", marginBottom: "1.5rem",
-              }}>
-                {skill.label}
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                {skill.items.map(item => (
-                  <motion.span
-                    key={item}
-                    whileHover={{ background: "rgba(200,169,110,0.15)", color: "var(--accent)" }}
-                    style={{
-                      fontFamily: "var(--font-mono)", fontSize: "0.72rem",
-                      color: "var(--muted)", background: "rgba(255,255,255,0.04)",
-                      border: "1px solid var(--border)",
-                      padding: "6px 12px", borderRadius: "2px",
-                      cursor: "default", transition: "all 0.2s",
-                    }}
-                  >
-                    {item}
-                  </motion.span>
-                ))}
-              </div>
-            </motion.div>
-          ))}
+const Skills = () => (
+  <section id="skills" className="section" style={{ background: "var(--surface)" }}>
+    <div className="container">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        style={{ textAlign: "center", marginBottom: "5rem" }}
+      >
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--accent)", letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: "1rem" }}>
+          Technical Stack
         </div>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 300, letterSpacing: "-0.02em", color: "var(--text)" }}>
+          Engineered <em style={{ fontStyle: "italic", color: "var(--accent)" }}>expertise</em>
+        </h2>
+      </motion.div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+        {SKILLS.map((skill, i) => (
+          <motion.div
+            key={skill.label}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1, duration: 0.7 }}
+            whileHover={{ borderColor: "rgba(200,169,110,0.3)", y: -4 }}
+            style={{
+              background: "var(--bg)", border: "1px solid var(--border)",
+              borderRadius: "4px", padding: "2rem",
+              transition: "border-color 0.3s, transform 0.3s",
+            }}
+          >
+            <div style={{
+              fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+              color: "var(--accent)", letterSpacing: "0.2em",
+              textTransform: "uppercase", marginBottom: "1.5rem",
+            }}>
+              {skill.label}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+              {skill.items.map(item => (
+                <motion.span
+                  key={item}
+                  whileHover={{ background: "rgba(200,169,110,0.15)", color: "var(--accent)" }}
+                  style={{
+                    fontFamily: "var(--font-mono)", fontSize: "0.72rem",
+                    color: "var(--muted)", background: "rgba(255,255,255,0.04)",
+                    border: "1px solid var(--border)",
+                    padding: "6px 12px", borderRadius: "2px",
+                    cursor: "default", transition: "all 0.2s",
+                  }}
+                >
+                  {item}
+                </motion.span>
+              ))}
+            </div>
+          </motion.div>
+        ))}
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
 // ─── EXPERIENCE ───────────────────────────────────────────────────────────────
-
-const EXPERIENCE = [
-  {
-    role: "Software Engineer",
-    company: "Stealth AI Health Tech Startup",
-    period: "Feb 2026 — Present",
-    type: "Full-time",
-    points: [
-      "Integrated WhatsApp Cloud API to power a conversational AI assistant with real-time webhook handling.",
-      "Built a multi-stage onboarding system with stateful conversation flows and user data validation.",
-      "Designed a modular backend connecting the messaging layer to AI services for contextual, dynamic responses.",
-    ],
-    tags: ["WhatsApp API", "AI", "Node.js", "Webhooks"],
-  },
-  {
-    role: "Data & AI Intern",
-    company: "Indium Software",
-    period: "May 2025 — Jul 2025",
-    type: "Internship · Remote",
-    points: [
-      "Built LangGraph-based multi-agent systems on Databricks Mosaic AI - reduced manual code review time by 40%.",
-      "Deployed multi-LLM routing logic cutting API latency by 45% and reducing costs significantly.",
-      "Automated test generation with LLM agents, improving code coverage by 30%.",
-    ],
-    tags: ["Python", "LangGraph", "Databricks", "MLflow", "LLMs"],
-  },
-  {
-    role: "Software Development Engineer Intern",
-    company: "Agni Green Power Limited",
-    period: "May 2024 — Jul 2024",
-    type: "Internship · Kolkata",
-    points: [
-      "Engineered a client service workflow module that improved operational efficiency by 25%.",
-      "Built a centralized MySQL admin dashboard reducing data retrieval time by 30%.",
-      "Automated performance reporting, enabling faster data-driven decisions across teams.",
-    ],
-    tags: ["PHP", "MySQL", "JavaScript", "jQuery"],
-  },
-  {
-    role: "Senior Core Member & Security Analyst",
-    company: "Google Developer Student Clubs — VIT",
-    period: "May 2023 — Nov 2025",
-    type: "Leadership",
-    points: [
-      "Ran cybersecurity workshops for 3,000+ attendees; mentored 200+ students on secure coding.",
-      "Managed a 36-hour international CTF competition with 5,000+ participants, growing global reach by 15%.",
-    ],
-    tags: ["Cybersecurity", "CTF", "Mentorship", "Community"],
-  },
-];
 
 const ExperienceCard = ({ exp, index }) => {
   const [hovered, setHovered] = useState(false);
@@ -1422,22 +1400,17 @@ const ExperienceCard = ({ exp, index }) => {
           height: "100%", display: "flex", flexDirection: "column",
         }}
       >
-        {/* Index watermark */}
         <div style={{
           position: "absolute", top: "1.5rem", right: "2rem",
           fontFamily: "var(--font-display)", fontSize: "3rem",
           color: "rgba(200,169,110,0.07)", fontWeight: 300, lineHeight: 1,
           userSelect: "none",
-        }}>
+        }} aria-hidden="true">
           {String(index + 1).padStart(2, "0")}
         </div>
 
-        {/* Period + type */}
         <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-          <div style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.63rem",
-            color: "var(--muted)", letterSpacing: "0.05em",
-          }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.63rem", color: "var(--muted)", letterSpacing: "0.05em" }}>
             {exp.period}
           </div>
           <div style={{
@@ -1452,40 +1425,22 @@ const ExperienceCard = ({ exp, index }) => {
           </div>
         </div>
 
-        {/* Role */}
-        <div style={{
-          fontFamily: "var(--font-sans)", fontSize: "1.1rem",
-          fontWeight: 700, color: "var(--text)",
-          marginBottom: "0.25rem", letterSpacing: "-0.01em",
-        }}>
+        <div style={{ fontFamily: "var(--font-sans)", fontSize: "1.1rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.25rem", letterSpacing: "-0.01em" }}>
           {exp.role}
         </div>
-
-        {/* Company */}
-        <div style={{
-          fontFamily: "var(--font-display)", fontSize: "1rem",
-          fontStyle: "italic", color: "var(--accent)",
-          marginBottom: "1.5rem",
-        }}>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "1rem", fontStyle: "italic", color: "var(--accent)", marginBottom: "1.5rem" }}>
           {exp.company}
         </div>
 
-        {/* Points */}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginBottom: "1.75rem", flex: 1 }}>
           {exp.points.map((pt, j) => (
             <div key={j} style={{ display: "flex", gap: "0.65rem", alignItems: "flex-start" }}>
-              <span style={{ color: "var(--accent)", fontSize: "0.65rem", marginTop: "0.3rem", flexShrink: 0 }}>→</span>
-              <span style={{
-                fontFamily: "var(--font-sans)", fontSize: "0.84rem",
-                color: "var(--muted)", lineHeight: 1.65,
-              }}>
-                {pt}
-              </span>
+              <span style={{ color: "var(--accent)", fontSize: "0.65rem", marginTop: "0.3rem", flexShrink: 0 }} aria-hidden="true">→</span>
+              <span style={{ fontFamily: "var(--font-sans)", fontSize: "0.84rem", color: "var(--muted)", lineHeight: 1.65 }}>{pt}</span>
             </div>
           ))}
         </div>
 
-        {/* Tags */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
           {exp.tags.map(tag => (
             <span key={tag} style={{
@@ -1499,7 +1454,6 @@ const ExperienceCard = ({ exp, index }) => {
           ))}
         </div>
 
-        {/* Hover glow */}
         <motion.div
           animate={{ opacity: hovered ? 1 : 0 }}
           style={{
@@ -1507,6 +1461,7 @@ const ExperienceCard = ({ exp, index }) => {
             background: "radial-gradient(ellipse at 50% 0%, rgba(200,169,110,0.06) 0%, transparent 70%)",
             pointerEvents: "none",
           }}
+          aria-hidden="true"
         />
       </motion.div>
     </motion.div>
@@ -1523,26 +1478,15 @@ const Experience = () => (
         transition={{ duration: 0.8 }}
         style={{ marginBottom: "4rem" }}
       >
-        <div style={{
-          fontFamily: "var(--font-mono)", fontSize: "0.7rem",
-          color: "var(--accent)", letterSpacing: "0.3em",
-          textTransform: "uppercase", marginBottom: "1rem",
-        }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--accent)", letterSpacing: "0.3em", textTransform: "uppercase", marginBottom: "1rem" }}>
           Where I've Worked
         </div>
-        <h2 style={{
-          fontFamily: "var(--font-display)", fontSize: "clamp(2.5rem, 5vw, 4rem)",
-          fontWeight: 300, letterSpacing: "-0.02em", color: "var(--text)",
-        }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 300, letterSpacing: "-0.02em", color: "var(--text)" }}>
           Experience &amp; <em style={{ fontStyle: "italic", color: "var(--accent)" }}>Impact</em>
         </h2>
       </motion.div>
 
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
-        gap: "1.5rem",
-      }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "1.5rem" }}>
         {EXPERIENCE.map((exp, i) => (
           <ExperienceCard key={exp.company} exp={exp} index={i} />
         ))}
@@ -1566,9 +1510,7 @@ const ServiceCard = ({ service, index }) => {
     y.set(e.clientY - rect.top - rect.height / 2);
   };
 
-  const onMouseLeave = () => {
-    x.set(0); y.set(0);
-  };
+  const onMouseLeave = () => { x.set(0); y.set(0); };
 
   return (
     <motion.div
@@ -1592,50 +1534,38 @@ const ServiceCard = ({ service, index }) => {
           cursor: "default",
         }}
       >
-        {/* Animated border glow */}
         {hovered && (
           <div style={{
             position: "absolute", inset: 0,
             background: "linear-gradient(135deg, rgba(200,169,110,0.05) 0%, transparent 60%)",
             borderRadius: "4px",
-          }} />
+          }} aria-hidden="true" />
         )}
 
-        {/* Corner tag */}
         <div style={{
           position: "absolute", top: 20, right: 20,
           fontFamily: "var(--font-mono)", fontSize: "0.6rem",
           color: "var(--accent)", letterSpacing: "0.15em",
           opacity: 0.6,
-        }}>
+        }} aria-hidden="true">
           {service.tag}
         </div>
 
-        {/* Icon */}
         <div style={{
           fontFamily: "var(--font-sans)", fontSize: "2rem",
           color: hovered ? "var(--accent)" : "var(--muted)",
           marginBottom: "1.5rem", transition: "color 0.3s",
-        }}>
+        }} aria-hidden="true">
           {service.icon}
         </div>
 
-        <h3 style={{
-          fontFamily: "var(--font-sans)", fontSize: "1.1rem",
-          fontWeight: 600, color: "var(--text)",
-          marginBottom: "1rem", letterSpacing: "-0.01em",
-        }}>
+        <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.1rem", fontWeight: 600, color: "var(--text)", marginBottom: "1rem", letterSpacing: "-0.01em" }}>
           {service.title}
         </h3>
-
-        <p style={{
-          fontFamily: "var(--font-sans)", fontSize: "0.875rem",
-          color: "var(--muted)", lineHeight: 1.7,
-        }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: "0.875rem", color: "var(--muted)", lineHeight: 1.7 }}>
           {service.desc}
         </p>
 
-        {/* Bottom line */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: hovered ? 1 : 0 }}
@@ -1645,6 +1575,7 @@ const ServiceCard = ({ service, index }) => {
             height: 2, background: "linear-gradient(to right, var(--accent), transparent)",
             transformOrigin: "left",
           }}
+          aria-hidden="true"
         />
       </motion.div>
     </motion.div>
@@ -1665,7 +1596,7 @@ const Services = () => (
           What I Offer
         </div>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 300, letterSpacing: "-0.02em", color: "var(--text)", maxWidth: 600 }}>
-          What I <em style={{ fontStyle: "italic", color: "var(--accent)" }}>build & deliver</em>
+          What I <em style={{ fontStyle: "italic", color: "var(--accent)" }}>build &amp; deliver</em>
         </h2>
       </motion.div>
 
@@ -1679,6 +1610,8 @@ const Services = () => (
 );
 
 // ─── PROJECTS ─────────────────────────────────────────────────────────────────
+// FIX: "View Project →" links now include the project name for accessibility
+// (identical link text for different destinations was flagged)
 
 const ProjectCard = ({ project, index }) => {
   const [hovered, setHovered] = useState(false);
@@ -1705,24 +1638,19 @@ const ProjectCard = ({ project, index }) => {
           height: "100%", display: "flex", flexDirection: "column",
         }}
       >
-        {/* Year + link row */}
         <div style={{
           position: "absolute", top: "2rem", right: "2rem",
           display: "flex", alignItems: "center", gap: "1rem",
         }}>
-          <div style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-            color: "var(--muted)", letterSpacing: "0.1em",
-          }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)", letterSpacing: "0.1em" }}>
             {project.year}
           </div>
           <motion.a
             href={project.link}
-            target="_blank"
-            rel="noreferrer"
+            target="_blank" rel="noreferrer"
             whileHover={{ scale: 1.1, color: "var(--accent)" }}
             whileTap={{ scale: 0.95 }}
-            title="View Project"
+            aria-label={`View ${project.name} on GitHub`}
             style={{
               display: "flex", alignItems: "center", justifyContent: "center",
               width: 32, height: 32, borderRadius: "50%",
@@ -1737,12 +1665,11 @@ const ProjectCard = ({ project, index }) => {
           </motion.a>
         </div>
 
-        {/* Index */}
         <div style={{
           fontFamily: "var(--font-display)", fontSize: "3.5rem",
           color: "rgba(200,169,110,0.1)", fontWeight: 300,
           lineHeight: 1, marginBottom: "1.5rem",
-        }}>
+        }} aria-hidden="true">
           {String(index + 1).padStart(2, "0")}
         </div>
 
@@ -1750,23 +1677,14 @@ const ProjectCard = ({ project, index }) => {
           {project.subtitle}
         </div>
 
-        <h3 style={{
-          fontFamily: "var(--font-sans)", fontSize: "1.5rem",
-          fontWeight: 700, color: "var(--text)",
-          marginBottom: "1.25rem", letterSpacing: "-0.02em",
-        }}>
+        <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.5rem", fontWeight: 700, color: "var(--text)", marginBottom: "1.25rem", letterSpacing: "-0.02em" }}>
           {project.name}
         </h3>
 
-        <p style={{
-          fontFamily: "var(--font-sans)", fontSize: "0.875rem",
-          color: "var(--muted)", lineHeight: 1.75,
-          marginBottom: "2rem", flex: 1,
-        }}>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: "0.875rem", color: "var(--muted)", lineHeight: 1.75, marginBottom: "2rem", flex: 1 }}>
           {project.desc}
         </p>
 
-        {/* Metric callout */}
         <div style={{
           background: "rgba(200,169,110,0.08)", border: "1px solid rgba(200,169,110,0.15)",
           borderRadius: "2px", padding: "10px 16px",
@@ -1777,7 +1695,6 @@ const ProjectCard = ({ project, index }) => {
           ↑ {project.metric}
         </div>
 
-        {/* Tags + view link */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
           {project.tags.map(tag => (
             <span key={tag} style={{
@@ -1791,11 +1708,10 @@ const ProjectCard = ({ project, index }) => {
           ))}
         </div>
 
-        {/* Bottom CTA link */}
+        {/* FIX: Link text now includes project name — fixes "identical links" a11y audit */}
         <motion.a
           href={project.link}
-          target="_blank"
-          rel="noreferrer"
+          target="_blank" rel="noreferrer"
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 6 }}
           transition={{ duration: 0.25 }}
@@ -1807,10 +1723,9 @@ const ProjectCard = ({ project, index }) => {
             letterSpacing: "0.08em", textTransform: "uppercase",
           }}
         >
-          View Project <span>→</span>
+          View {project.name} <span aria-hidden="true">→</span>
         </motion.a>
 
-        {/* Glow */}
         <motion.div
           animate={{ opacity: hovered ? 1 : 0 }}
           style={{
@@ -1818,6 +1733,7 @@ const ProjectCard = ({ project, index }) => {
             background: "radial-gradient(ellipse at 50% 100%, rgba(200,169,110,0.06) 0%, transparent 70%)",
             pointerEvents: "none",
           }}
+          aria-hidden="true"
         />
       </motion.div>
     </motion.div>
@@ -1848,17 +1764,21 @@ const Projects = () => (
   </section>
 );
 
-// ─── EXPERIENCE MARQUEE ───────────────────────────────────────────────────────
+// ─── MARQUEE ──────────────────────────────────────────────────────────────────
+// FIX: aria-hidden="true" — decorative, low-contrast text hidden from a11y tree
 
 const Marquee = () => {
   const items = ["Go", "Python", "PyTorch", "LangGraph", "PostgreSQL", "Kubernetes", "Docker", "Prometheus", "ONNX", "MLflow", "LangChain", "RabbitMQ"];
 
   return (
-    <div style={{
-      padding: "3rem 0", overflow: "hidden",
-      borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
-      background: "var(--bg)",
-    }}>
+    <div
+      style={{
+        padding: "3rem 0", overflow: "hidden",
+        borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
+        background: "var(--bg)",
+      }}
+      aria-hidden="true"  // FIX: decorative marquee hidden from screen readers + fixes low-contrast audit
+    >
       <motion.div
         animate={{ x: [0, "-50%"] }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -1904,10 +1824,7 @@ const Contact = () => (
             <em style={{ fontStyle: "italic", color: "var(--accent)" }}>in mind?</em>
           </h2>
 
-          <p style={{
-            fontFamily: "var(--font-sans)", fontSize: "1rem",
-            color: "var(--muted)", lineHeight: 1.7, marginBottom: "3.5rem",
-          }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: "1rem", color: "var(--muted)", lineHeight: 1.7, marginBottom: "3.5rem" }}>
             I'm available for consulting, freelance projects, and full-time opportunities. Let's connect and build something meaningful.
           </p>
 
@@ -1935,7 +1852,7 @@ const Contact = () => (
               ].map(([label, url]) => (
                 <motion.a
                   key={label}
-                  href={url} target="_blank"
+                  href={url} target="_blank" rel="noreferrer"
                   whileHover={{ color: "var(--accent)" }}
                   style={{
                     fontFamily: "var(--font-mono)", fontSize: "0.7rem",
@@ -1959,46 +1876,22 @@ const Contact = () => (
 
 const Footer = () => (
   <footer style={{ background: "var(--surface)", borderTop: "1px solid var(--border)" }}>
-
-    {/* Main footer grid */}
     <div className="container" style={{ padding: "5rem 40px 3rem" }}>
-      <div className="footer-grid" style={{
-        display: "grid",
-        gridTemplateColumns: "2fr 1fr 1fr 1fr",
-        gap: "3rem",
-      }}>
-
-        {/* Brand col */}
+      <div className="footer-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "3rem" }}>
         <div className="footer-brand">
-          <div style={{
-            fontFamily: "var(--font-display)", fontSize: "2rem",
-            fontStyle: "italic", color: "var(--accent)", fontWeight: 300,
-            marginBottom: "1rem",
-          }}>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontStyle: "italic", color: "var(--accent)", fontWeight: 300, marginBottom: "1rem" }}>
             Souvik Mahanta
           </div>
-          <p style={{
-            fontFamily: "var(--font-sans)", fontSize: "0.85rem",
-            color: "var(--muted)", lineHeight: 1.7, maxWidth: 280,
-            marginBottom: "1.5rem",
-          }}>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: "0.85rem", color: "var(--muted)", lineHeight: 1.7, maxWidth: 280, marginBottom: "1.5rem" }}>
             Backend engineer & AI systems specialist. Building scalable infrastructure, autonomous agents, and distributed systems that work at scale.
           </p>
-          <div style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-            color: "var(--muted)", letterSpacing: "0.1em",
-          }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)", letterSpacing: "0.1em" }}>
             Kolkata, India 🇮🇳
           </div>
         </div>
 
-        {/* Links col */}
-        <div>
-          <div style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-            color: "var(--accent)", letterSpacing: "0.2em",
-            textTransform: "uppercase", marginBottom: "1.5rem",
-          }}>
+        <nav aria-label="Footer navigation">
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--accent)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1.5rem" }}>
             Navigation
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -2007,25 +1900,16 @@ const Footer = () => (
                 key={link}
                 href={`#${link.toLowerCase()}`}
                 whileHover={{ color: "var(--accent)", x: 4 }}
-                style={{
-                  fontFamily: "var(--font-sans)", fontSize: "0.85rem",
-                  color: "var(--muted)", textDecoration: "none",
-                  transition: "color 0.2s",
-                }}
+                style={{ fontFamily: "var(--font-sans)", fontSize: "0.85rem", color: "var(--muted)", textDecoration: "none", transition: "color 0.2s" }}
               >
                 {link}
               </motion.a>
             ))}
           </div>
-        </div>
+        </nav>
 
-        {/* Connect col */}
         <div>
-          <div style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-            color: "var(--accent)", letterSpacing: "0.2em",
-            textTransform: "uppercase", marginBottom: "1.5rem",
-          }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--accent)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1.5rem" }}>
             Connect
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -2038,50 +1922,30 @@ const Footer = () => (
                 key={label}
                 href={url} target="_blank" rel="noreferrer"
                 whileHover={{ color: "var(--accent)", x: 4 }}
-                style={{
-                  fontFamily: "var(--font-sans)", fontSize: "0.85rem",
-                  color: "var(--muted)", textDecoration: "none",
-                  display: "flex", alignItems: "center", gap: "0.4rem",
-                  transition: "color 0.2s",
-                }}
+                style={{ fontFamily: "var(--font-sans)", fontSize: "0.85rem", color: "var(--muted)", textDecoration: "none", display: "flex", alignItems: "center", gap: "0.4rem", transition: "color 0.2s" }}
               >
-                {label} <span style={{ fontSize: "0.7rem" }}>↗</span>
+                {label} <span style={{ fontSize: "0.7rem" }} aria-hidden="true">↗</span>
               </motion.a>
             ))}
           </div>
         </div>
 
-        {/* Contact col */}
         <div>
-          <div style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-            color: "var(--accent)", letterSpacing: "0.2em",
-            textTransform: "uppercase", marginBottom: "1.5rem",
-          }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--accent)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1.5rem" }}>
             Contact
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             <motion.a
               href="mailto:souvikmahanta2003@gmail.com"
               whileHover={{ color: "var(--accent)" }}
-              style={{
-                fontFamily: "var(--font-mono)", fontSize: "0.72rem",
-                color: "var(--muted)", textDecoration: "none",
-                wordBreak: "break-all", lineHeight: 1.5,
-                transition: "color 0.2s",
-              }}
+              style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--muted)", textDecoration: "none", wordBreak: "break-all", lineHeight: 1.5, transition: "color 0.2s" }}
             >
               souvikmahanta2003@gmail.com
             </motion.a>
             <motion.a
               href="mailto:souvikmahantabusiness2003@gmail.com"
               whileHover={{ color: "var(--accent)" }}
-              style={{
-                fontFamily: "var(--font-mono)", fontSize: "0.72rem",
-                color: "var(--muted)", textDecoration: "none",
-                wordBreak: "break-all", lineHeight: 1.5,
-                transition: "color 0.2s",
-              }}
+              style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--muted)", textDecoration: "none", wordBreak: "break-all", lineHeight: 1.5, transition: "color 0.2s" }}
             >
               souvikmahantabusiness2003@gmail.com
             </motion.a>
@@ -2090,25 +1954,13 @@ const Footer = () => (
       </div>
     </div>
 
-    {/* Bottom bar */}
     <div style={{ borderTop: "1px solid var(--border)" }}>
-      <div className="container" style={{
-        padding: "1.5rem 40px",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        flexWrap: "wrap", gap: "1rem",
-      }}>
-        <div style={{
-          fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-          color: "var(--muted)", letterSpacing: "0.08em",
-        }}>
+      <div className="container" style={{ padding: "1.5rem 40px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)", letterSpacing: "0.08em" }}>
           © 2026 Souvik Mahanta. All rights reserved.
         </div>
-        <div style={{
-          fontFamily: "var(--font-display)", fontSize: "0.9rem",
-          fontStyle: "italic", color: "var(--muted)",
-          display: "flex", alignItems: "center", gap: "0.4rem",
-        }}>
-          Made with <span style={{ color: "#e05c5c", fontSize: "1rem" }}>♥</span> by Souvik Mahanta
+        <div style={{ fontFamily: "var(--font-display)", fontSize: "0.9rem", fontStyle: "italic", color: "var(--muted)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          Made with <span style={{ color: "#e05c5c", fontSize: "1rem" }} aria-label="love">♥</span> by Souvik Mahanta
         </div>
       </div>
     </div>
@@ -2127,9 +1979,17 @@ export default function App() {
     setLoaded(true);
   }, []);
 
-  // Set page title and favicon — using data URI (no blob, no revocation bug)
   useEffect(() => {
     document.title = "Souvik Mahanta";
+
+    // Set meta description programmatically (also add to index.html for best SEO)
+    let meta = document.querySelector("meta[name='description']");
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "description";
+      document.head.appendChild(meta);
+    }
+    meta.content = "Souvik Mahanta - Backend engineer & AI systems specialist. Building scalable infrastructure, autonomous agents, and distributed systems.";
 
     const svgRaw = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="%23080808"/><text x="50%25" y="54%25" dominant-baseline="middle" text-anchor="middle" font-family="Georgia%2C serif" font-size="26" font-style="italic" font-weight="400" fill="%23c8a96e">SM</text></svg>`;
     const dataURI = `data:image/svg+xml,${svgRaw}`;
@@ -2147,7 +2007,7 @@ export default function App() {
   return (
     <>
       <GlobalStyles />
-      <div className="grain" />
+      <div className="grain" aria-hidden="true" />
       <CustomCursor />
       <Preloader onComplete={handleComplete} />
 

@@ -8,13 +8,13 @@
     <meta name="google-site-verification" content="IDGW9xGd9FhVC3QyqeqIkTIt87f3lDMnOmVZnyBpvO4" />
 
     <!-- Primary SEO -->
-    <title>Souvik Mahanta — Backend Engineer & AI Specialist</title>
-    <meta name="description" content="Souvik Mahanta — Backend engineer and AI systems specialist building scalable infrastructure, autonomous AI agents, and distributed systems. Based in India." />
+    <title>Souvik Mahanta — Backend Engineer & AI Systems Specialist</title>
+    <meta name="description" content="Souvik Mahanta — Backend engineer & AI systems specialist. Building scalable infrastructure, autonomous agents, and distributed systems." />
     <meta name="author" content="Souvik Mahanta" />
     <meta name="keywords" content="Souvik Mahanta, Backend Engineer, AI Engineer, Go, Python, LangChain, LangGraph, Blockchain, Portfolio" />
 
     <!-- Open Graph (LinkedIn, Twitter Preview) -->
-    <meta property="og:title" content="Souvik Mahanta — Backend Engineer & AI Specialist" />
+    <meta property="og:title" content="Souvik Mahanta — Backend Engineer & AI Systems Specialist" />
     <meta property="og:description" content="Building scalable backend systems, autonomous AI agents, and high-performance distributed infrastructure." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://souvikmahanta.vercel.app/" />
@@ -22,21 +22,27 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23080808'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia%2C serif' font-size='26' font-style='italic' font-weight='400' fill='%23c8a96e'%3ESM%3C/text%3E%3C/svg%3E" />
 
-    <!-- Preconnect Google Fonts -->
+    <!-- FIX: Non-blocking fonts (removes render-blocking chain) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" /></noscript>
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CEEQ0F1ZJW"></script>
+    <!-- FIX: Preload LCP image — update to .webp after converting -->
+    <link rel="preload" as="image" href="/assets/profile/profile.png" fetchpriority="high" />
+
+    <!-- FIX: GTM deferred — was blocking 138ms on main thread -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-CEEQ0F1ZJW');
+      window.addEventListener('load', function() {
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','G-CEEQ0F1ZJW');
+      });
     </script>
   </head>
 
   <body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=G-CEEQ0F1ZJW" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
