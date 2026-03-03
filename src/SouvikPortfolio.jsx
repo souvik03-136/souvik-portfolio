@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react"
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import profileImg from "./assets/profile/profile.webp";
 
-// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+
 
 const NAV_LINKS = ["About", "Experience", "Skills", "Services", "Projects", "Contact"];
 
