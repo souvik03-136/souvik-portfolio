@@ -56,16 +56,17 @@ const SKILLS = [
 
 const EXPERIENCE = [
   {
-    role: "Software Engineer",
-    company: "Stealth AI Health Tech Startup",
-    period: "Feb 2026 — Present",
+    role: "Tech Trainee",
+    company: "Sutherland",
+    period: "Apr 2026 — Present",
     type: "Full-time",
     points: [
-      "Integrated WhatsApp Cloud API to power a conversational AI assistant with real-time webhook handling.",
-      "Built a multi-stage onboarding system with stateful conversation flows and user data validation.",
-      "Designed a modular backend connecting the messaging layer to AI services for contextual, dynamic responses.",
+      "Designed and deployed a RAG pipeline using pgvector, semantic chunking, and cross-encoder reranking to power an internal Q&A chatbot.",
+      "Implemented multi-layer RBAC across topic classification, vector retrieval filtering, and chunk-level enforcement — preventing unauthorized access to sensitive documents.",
+      "Built a multi-stage guardrails system covering PII detection/anonymization (Presidio), hallucination detection (NLI + sentence transformers), and out-of-scope query filtering.",
+      "Orchestrated the full pipeline as a LangGraph state machine, replacing a monolithic API with a modular, node-based agentic workflow with Gemini 2.0 Flash and Google text-embedding-004.",
     ],
-    tags: ["WhatsApp API", "AI", "Node.js", "Webhooks"],
+    tags: ["Python", "FastAPI", "LangGraph", "PostgreSQL", "pgvector", "Google Gemini", "Presidio", "Docker"],
   },
   {
     role: "Data & AI Intern",
@@ -1249,7 +1250,7 @@ const About = () => {
             >
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)", marginBottom: 4 }}>Currently</div>
               <div style={{ fontFamily: "var(--font-sans)", fontSize: "0.85rem", color: "var(--accent)", fontWeight: 500 }}>AI Health Tech</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)" }}>Stealth Startup</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)" }}>Sutherland</div>
             </motion.div>
           </motion.div>
 
