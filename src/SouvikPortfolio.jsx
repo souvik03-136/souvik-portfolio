@@ -57,7 +57,7 @@ const SKILLS = [
 const EXPERIENCE = [
   {
     role: "Tech Trainee",
-    company: "Sutherland",
+    company: "Sutherland Global Services, Inc.",
     period: "Apr 2026 — Present",
     type: "Full-time",
     points: [
@@ -1249,8 +1249,8 @@ const About = () => {
               }}
             >
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)", marginBottom: 4 }}>Currently</div>
-              <div style={{ fontFamily: "var(--font-sans)", fontSize: "0.85rem", color: "var(--accent)", fontWeight: 500 }}>AI Health Tech</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)" }}>Sutherland</div>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: "0.85rem", color: "var(--accent)", fontWeight: 500 }}>Tech Trainee</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--muted)" }}>Sutherland Global Services, Inc.</div>
             </motion.div>
           </motion.div>
 
